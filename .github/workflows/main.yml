@@ -239,7 +239,7 @@ jobs:
           /usr/share/doc/%{name}/
           
           %changelog
-          * $(date '+%a %b %d %Y') Stack3D Team <team@example.com> - 1.0.0-1
+          * Tue Aug 13 2025 Stack3D Team <team@example.com> - 1.0.0-1
           - Initial release
           - 3D window stacking with physics animations
           - Multiple layout modes and customization options
@@ -253,6 +253,7 @@ jobs:
           rpmbuild -ba ~/rpmbuild/SPECS/hyprland-stack3d.spec
           
           # Copy the built RPM to packages directory
+          cd ../..
           cp ~/rpmbuild/RPMS/x86_64/hyprland-stack3d-1.0.0-1.*.rpm packages/hyprland-stack3d-1.0.0-1.x86_64.rpm
           echo "RPM package created: hyprland-stack3d-1.0.0-1.x86_64.rpm"
           
