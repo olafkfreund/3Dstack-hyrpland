@@ -20,15 +20,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         
-      - name: Create Debian package structure
+      - name: Install package build tools
         run: |
-          echo "Creating Debian package structure..."
+          sudo apt-get update
+          sudo apt-get install -y dpkg-deb rpm build-essential
+        
+      - name: Build Debian package
+        run: |
+          echo "Building Debian .deb package..."
           mkdir -p packages/debian/hyprland-stack3d-1.0.0/DEBIAN
           mkdir -p packages/debian/hyprland-stack3d-1.0.0/usr/lib/hyprland
           mkdir -p packages/debian/hyprland-stack3d-1.0.0/usr/share/doc/hyprland-stack3d
           
+          # Create placeholder for plugin binary (to be replaced by user after nix build)
+          echo "# Placeholder - replace with actual stack3d.so from 'nix build'" > packages/debian/hyprland-stack3d-1.0.0/usr/lib/hyprland/stack3d.so.placeholder
+          
           # Control file
-          cat > packages/debian/hyprland-stack3d-1.0.0/DEBIAN/control << EOF
+          cat > packages/debian/hyprland-stack3d-1.0.0/DEBIAN/control << 'EOF'
           Package: hyprland-stack3d
           Version: 1.0.0
           Section: x11
@@ -51,8 +59,32 @@ jobs:
            The plugin integrates seamlessly with Hyprland's existing window
            management system and can be controlled via hyprctl commands.
            .
-           To use: Build with 'nix build' then copy stack3d.so to this package.
+           Note: Install nix and run 'nix build' to generate the plugin binary.
           EOF
+          
+          # Post-install script to guide user
+          cat > packages/debian/hyprland-stack3d-1.0.0/DEBIAN/postinst << 'EOF'
+          #!/bin/bash
+          set -e
+          
+          echo ""
+          echo "=========================================="
+          echo "  Hyprland Stack3D Plugin Installation"
+          echo "=========================================="
+          echo ""
+          echo "Package installed successfully!"
+          echo ""
+          echo "To complete the installation:"
+          echo "1. Install Nix: curl -L https://nixos.org/nix/install | sh"
+          echo "2. Clone repository: git clone https://github.com/olafkfreund/3Dstack-hyrpland.git"
+          echo "3. Build plugin: cd 3Dstack-hyrpland && nix build"
+          echo "4. Copy plugin: sudo cp result/lib/stack3d.so /usr/lib/hyprland/"
+          echo "5. Add to Hyprland config: plugin = /usr/lib/hyprland/stack3d.so"
+          echo ""
+          echo "Documentation: /usr/share/doc/hyprland-stack3d/"
+          echo ""
+          EOF
+          chmod 755 packages/debian/hyprland-stack3d-1.0.0/DEBIAN/postinst
           
           # Copy documentation
           cp hyprland_stack3d_plugin.md packages/debian/hyprland-stack3d-1.0.0/usr/share/doc/hyprland-stack3d/README.md
@@ -64,22 +96,32 @@ jobs:
           
           ## Building the Plugin
           
-          1. Build the plugin with Nix:
+          This package provides the framework. You need to build the actual plugin:
+          
+          1. Install Nix (if not already installed):
              ```bash
+             curl -L https://nixos.org/nix/install | sh
+             source ~/.nix-profile/etc/profile.d/nix.sh
+             ```
+          
+          2. Clone and build the plugin:
+             ```bash
+             git clone https://github.com/olafkfreund/3Dstack-hyrpland.git
+             cd 3Dstack-hyrpland
              nix build
              ```
           
-          2. Copy the built plugin:
+          3. Install the built plugin:
              ```bash
              sudo cp result/lib/stack3d.so /usr/lib/hyprland/
              ```
           
-          3. Add to your Hyprland configuration:
+          4. Add to your Hyprland configuration:
              ```
              plugin = /usr/lib/hyprland/stack3d.so
              ```
           
-          4. Test with: `hyprctl dispatch stack3d toggle`
+          5. Test with: `hyprctl dispatch stack3d toggle`
           
           ## Configuration
           
@@ -100,18 +142,42 @@ jobs:
           ```
           EOF
           
-      - name: Create Fedora package structure  
+          # Build the .deb package
+          dpkg-deb --build packages/debian/hyprland-stack3d-1.0.0
+          mv packages/debian/hyprland-stack3d-1.0.0.deb packages/hyprland-stack3d_1.0.0_amd64.deb
+          echo "Debian package created: hyprland-stack3d_1.0.0_amd64.deb"
+          
+      - name: Build RPM package
         run: |
-          echo "Creating Fedora package structure..."
+          echo "Building RPM package..."
+          
+          # Create RPM build directories
+          mkdir -p ~/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
           mkdir -p packages/fedora/hyprland-stack3d-1.0.0/usr/lib64/hyprland
           mkdir -p packages/fedora/hyprland-stack3d-1.0.0/usr/share/doc/hyprland-stack3d
+          
+          # Create placeholder for plugin binary
+          echo "# Placeholder - replace with actual stack3d.so from 'nix build'" > packages/fedora/hyprland-stack3d-1.0.0/usr/lib64/hyprland/stack3d.so.placeholder
           
           # Copy documentation
           cp hyprland_stack3d_plugin.md packages/fedora/hyprland-stack3d-1.0.0/usr/share/doc/hyprland-stack3d/README.md
           cp examples/hyprland.conf packages/fedora/hyprland-stack3d-1.0.0/usr/share/doc/hyprland-stack3d/example-hyprland.conf
           
+          # Create install instructions
+          cat > packages/fedora/hyprland-stack3d-1.0.0/usr/share/doc/hyprland-stack3d/INSTALL.md << 'EOF'
+          # Installation Instructions
+          
+          This RPM provides the framework. Build the plugin with:
+          
+          1. Install Nix: curl -L https://nixos.org/nix/install | sh
+          2. Clone: git clone https://github.com/olafkfreund/3Dstack-hyrpland.git
+          3. Build: cd 3Dstack-hyrpland && nix build
+          4. Install: sudo cp result/lib/stack3d.so /usr/lib64/hyprland/
+          5. Configure Hyprland: plugin = /usr/lib64/hyprland/stack3d.so
+          EOF
+          
           # Create RPM spec file
-          cat > packages/fedora/hyprland-stack3d.spec << EOF
+          cat > ~/rpmbuild/SPECS/hyprland-stack3d.spec << 'EOF'
           Name:           hyprland-stack3d
           Version:        1.0.0
           Release:        1%{?dist}
@@ -119,9 +185,10 @@ jobs:
           
           License:        MIT
           URL:            https://github.com/olafkfreund/3Dstack-hyrpland
+          Source0:        %{name}-%{version}.tar.gz
           
-          BuildRequires:  nix
           Requires:       hyprland, pixman, libdrm
+          BuildArch:      x86_64
           
           %description
           3D stack layout plugin for Hyprland with physics-based animations 
@@ -135,22 +202,40 @@ jobs:
           * Motion blur effects
           * Configurable keybindings
           
-          Build with: nix build
+          Note: Requires building with Nix. See documentation for details.
           
           %prep
           %setup -q
           
           %build
-          nix build
+          # Build step handled by user with Nix
           
           %install
           mkdir -p %{buildroot}/usr/lib64/hyprland
           mkdir -p %{buildroot}/usr/share/doc/%{name}
-          cp result/lib/stack3d.so %{buildroot}/usr/lib64/hyprland/
+          cp usr/lib64/hyprland/stack3d.so.placeholder %{buildroot}/usr/lib64/hyprland/
           cp usr/share/doc/%{name}/* %{buildroot}/usr/share/doc/%{name}/
           
+          %post
+          echo ""
+          echo "=========================================="
+          echo "  Hyprland Stack3D Plugin Installation"
+          echo "=========================================="
+          echo ""
+          echo "RPM installed successfully!"
+          echo ""
+          echo "To complete the installation:"
+          echo "1. Install Nix: curl -L https://nixos.org/nix/install | sh"
+          echo "2. Clone repository: git clone https://github.com/olafkfreund/3Dstack-hyrpland.git"
+          echo "3. Build plugin: cd 3Dstack-hyrpland && nix build"
+          echo "4. Copy plugin: sudo cp result/lib/stack3d.so /usr/lib64/hyprland/"
+          echo "5. Add to Hyprland config: plugin = /usr/lib64/hyprland/stack3d.so"
+          echo ""
+          echo "Documentation: /usr/share/doc/hyprland-stack3d/"
+          echo ""
+          
           %files
-          /usr/lib64/hyprland/stack3d.so
+          /usr/lib64/hyprland/stack3d.so.placeholder
           /usr/share/doc/%{name}/
           
           %changelog
@@ -160,53 +245,46 @@ jobs:
           - Multiple layout modes and customization options
           EOF
           
-      - name: Create Arch package structure
+          # Create source tarball
+          cd packages/fedora
+          tar czf ~/rpmbuild/SOURCES/hyprland-stack3d-1.0.0.tar.gz hyprland-stack3d-1.0.0/
+          
+          # Build the RPM
+          rpmbuild -ba ~/rpmbuild/SPECS/hyprland-stack3d.spec
+          
+          # Copy the built RPM to packages directory
+          cp ~/rpmbuild/RPMS/x86_64/hyprland-stack3d-1.0.0-1.*.rpm packages/hyprland-stack3d-1.0.0-1.x86_64.rpm
+          echo "RPM package created: hyprland-stack3d-1.0.0-1.x86_64.rpm"
+          
+      - name: Create Arch PKGBUILD
         run: |
-          echo "Creating Arch package structure..."
-          mkdir -p packages/arch/hyprland-stack3d
+          echo "Creating Arch PKGBUILD..."
+          mkdir -p packages/arch/hyprland-stack3d-1.0.0
           
           # Copy documentation
-          cp hyprland_stack3d_plugin.md packages/arch/hyprland-stack3d/README.md
-          cp examples/hyprland.conf packages/arch/hyprland-stack3d/example-hyprland.conf
+          cp hyprland_stack3d_plugin.md packages/arch/hyprland-stack3d-1.0.0/README.md
+          cp examples/hyprland.conf packages/arch/hyprland-stack3d-1.0.0/example-hyprland.conf
           
-          # Create PKGBUILD
-          cat > packages/arch/hyprland-stack3d/PKGBUILD << 'EOF'
-          # Maintainer: Stack3D Team <team@example.com>
+          # Create install instructions
+          cat > packages/arch/hyprland-stack3d-1.0.0/INSTALL.md << 'EOF'
+          # Arch Linux Installation
           
-          pkgname=hyprland-stack3d
-          pkgver=1.0.0
-          pkgrel=1
-          pkgdesc="3D stack layout plugin for Hyprland"
-          arch=('x86_64')
-          url="https://github.com/olafkfreund/3Dstack-hyrpland"
-          license=('MIT')
-          depends=('hyprland' 'pixman' 'libdrm')
-          makedepends=('nix')
-          source=("https://github.com/olafkfreund/3Dstack-hyrpland/archive/refs/heads/main.zip")
-          sha256sums=('SKIP')
+          ## Option 1: Using makepkg (recommended)
           
-          build() {
-              cd "$srcdir/3Dstack-hyrpland-main"
-              nix build
-          }
+          1. Extract this package
+          2. Run: `makepkg -si`
+          3. The package will automatically build with Nix and install
           
-          package() {
-              cd "$srcdir/3Dstack-hyrpland-main"
-              
-              # Install plugin binary
-              install -Dm755 "result/lib/stack3d.so" "$pkgdir/usr/lib/hyprland/stack3d.so"
-              
-              # Install documentation
-              install -Dm644 "hyprland_stack3d_plugin.md" "$pkgdir/usr/share/doc/$pkgname/README.md"
-              install -Dm644 "examples/hyprland.conf" "$pkgdir/usr/share/doc/$pkgname/example-hyprland.conf"
-              
-              # Create installation instructions
-              cat > "$pkgdir/usr/share/doc/$pkgname/INSTALL.md" << 'INSTEOF'
-          # hyprland-stack3d Installation
+          ## Option 2: Manual installation
+          
+          1. Install Nix: `curl -L https://nixos.org/nix/install | sh`
+          2. Clone: `git clone https://github.com/olafkfreund/3Dstack-hyrpland.git`
+          3. Build: `cd 3Dstack-hyrpland && nix build`
+          4. Install: `sudo cp result/lib/stack3d.so /usr/lib/hyprland/`
           
           ## Configuration
           
-          Add to your Hyprland config:
+          Add to ~/.config/hypr/hyprland.conf:
           
           ```
           plugin = /usr/lib/hyprland/stack3d.so
@@ -219,23 +297,77 @@ jobs:
               }
           }
           
-          # Keybindings
           bind = SUPER, grave, stack3d, toggle
           bind = SUPER SHIFT, grave, stack3d, cycle_layout
           ```
+          EOF
           
-          ## Usage
+          # Create PKGBUILD
+          cat > packages/arch/hyprland-stack3d-1.0.0/PKGBUILD << 'EOF'
+          # Maintainer: Stack3D Team <team@example.com>
           
-          - SUPER + grave: Toggle stack view
-          - SUPER + SHIFT + grave: Cycle layout modes
-          - hyprctl dispatch stack3d toggle: Manual toggle
+          pkgname=hyprland-stack3d
+          pkgver=1.0.0
+          pkgrel=1
+          pkgdesc="3D stack layout plugin for Hyprland"
+          arch=('x86_64')
+          url="https://github.com/olafkfreund/3Dstack-hyrpland"
+          license=('MIT')
+          depends=('hyprland' 'pixman' 'libdrm')
+          makedepends=('nix' 'git')
+          source=("${pkgname}-${pkgver}.tar.gz::https://github.com/olafkfreund/3Dstack-hyrpland/archive/v${pkgver}.tar.gz")
+          sha256sums=('SKIP')
           
-          INSTEOF
+          prepare() {
+              cd "$srcdir/3Dstack-hyrpland-${pkgver}"
+              
+              # Initialize Nix if needed
+              if [[ ! -f ~/.nix-profile/etc/profile.d/nix.sh ]] && [[ -f /etc/profile.d/nix.sh ]]; then
+                  source /etc/profile.d/nix.sh
+              elif [[ -f ~/.nix-profile/etc/profile.d/nix.sh ]]; then
+                  source ~/.nix-profile/etc/profile.d/nix.sh
+              fi
+          }
+          
+          build() {
+              cd "$srcdir/3Dstack-hyrpland-${pkgver}"
+              
+              msg2 "Building plugin with Nix..."
+              nix build
+          }
+          
+          package() {
+              cd "$srcdir/3Dstack-hyrpland-${pkgver}"
+              
+              # Install plugin binary
+              install -Dm755 "result/lib/stack3d.so" "$pkgdir/usr/lib/hyprland/stack3d.so"
+              
+              # Install documentation
+              install -Dm644 "hyprland_stack3d_plugin.md" "$pkgdir/usr/share/doc/$pkgname/README.md"
+              install -Dm644 "examples/hyprland.conf" "$pkgdir/usr/share/doc/$pkgname/example-hyprland.conf"
+              
+              # Create post-install message
+              mkdir -p "$pkgdir/usr/share/libalpm/hooks"
+              cat > "$pkgdir/usr/share/libalpm/hooks/hyprland-stack3d.hook" << 'HOOKEOF'
+          [Trigger]
+          Operation = Install
+          Operation = Upgrade
+          Type = Package
+          Target = hyprland-stack3d
+          
+          [Action]
+          Description = Hyprland Stack3D Plugin Setup
+          When = PostTransaction
+          Exec = /usr/bin/echo -e "\n====== Hyprland Stack3D Plugin v1.0.0 ======\nPlugin installed to: /usr/lib/hyprland/stack3d.so\n\nAdd to your Hyprland config:\nplugin = /usr/lib/hyprland/stack3d.so\n\nDocumentation: /usr/share/doc/hyprland-stack3d/\n============================================\n"
+          HOOKEOF
+              
+              # Install configuration example
+              install -Dm644 "examples/hyprland.conf" "$pkgdir/usr/share/doc/$pkgname/hyprland-config-example.conf"
           }
           EOF
           
           # Create .SRCINFO
-          cat > packages/arch/hyprland-stack3d/.SRCINFO << EOF
+          cat > packages/arch/hyprland-stack3d-1.0.0/.SRCINFO << 'EOF'
           pkgbase = hyprland-stack3d
           	pkgdesc = 3D stack layout plugin for Hyprland
           	pkgver = 1.0.0
@@ -244,77 +376,96 @@ jobs:
           	arch = x86_64
           	license = MIT
           	makedepends = nix
+          	makedepends = git
           	depends = hyprland
           	depends = pixman
           	depends = libdrm
-          	source = https://github.com/olafkfreund/3Dstack-hyrpland/archive/refs/heads/main.zip
+          	source = hyprland-stack3d-1.0.0.tar.gz::https://github.com/olafkfreund/3Dstack-hyrpland/archive/v1.0.0.tar.gz
           	sha256sums = SKIP
           
           pkgname = hyprland-stack3d
           EOF
           
-      - name: Create package archives
+          # Create Arch package tarball (for AUR submission)
+          cd packages/arch
+          tar czf hyprland-stack3d-1.0.0-PKGBUILD.tar.gz hyprland-stack3d-1.0.0/
+          mv hyprland-stack3d-1.0.0-PKGBUILD.tar.gz ../hyprland-stack3d-1.0.0-PKGBUILD.tar.gz
+          echo "Arch PKGBUILD package created: hyprland-stack3d-1.0.0-PKGBUILD.tar.gz"
+          
+      - name: Create final packages
         run: |
-          echo "Creating distribution archives..."
+          echo "Organizing final packages..."
           cd packages
           
-          # Create build instructions file
-          cat > BUILD.md << 'EOF'
-          # Building Hyprland Stack3D Plugin
+          # Create installation guide
+          cat > INSTALLATION.md << 'EOF'
+          # Hyprland Stack3D Plugin Installation Guide
           
-          These packages provide the structure and metadata for packaging the
-          Hyprland Stack3D plugin for different distributions.
+          ## Available Packages
           
-          ## Building the Plugin
+          - `hyprland-stack3d_1.0.0_amd64.deb` - Debian/Ubuntu package
+          - `hyprland-stack3d-1.0.0-1.x86_64.rpm` - Fedora/RHEL package  
+          - `hyprland-stack3d-1.0.0-PKGBUILD.tar.gz` - Arch Linux PKGBUILD
           
-          Before packaging, you need to build the actual plugin binary:
+          ## Installation Instructions
           
+          ### Debian/Ubuntu
           ```bash
-          # Clone the repository
-          git clone https://github.com/olafkfreund/3Dstack-hyrpland.git
-          cd 3Dstack-hyrpland
-          
-          # Build with Nix (recommended)
-          nix build
-          
-          # The plugin will be at: result/lib/stack3d.so
+          sudo dpkg -i hyprland-stack3d_1.0.0_amd64.deb
+          # Follow the post-installation instructions
           ```
           
-          ## Package Contents
-          
-          - **Debian**: Package structure with control file and documentation
-          - **Fedora**: RPM spec file and package structure  
-          - **Arch**: PKGBUILD and .SRCINFO for AUR
-          
-          Each package includes complete installation instructions and examples.
-          
-          ## Local Building
-          
-          Use the included build script for complete local packaging:
-          
+          ### Fedora/RHEL
           ```bash
-          ./scripts/build-packages.sh
+          sudo rpm -ivh hyprland-stack3d-1.0.0-1.x86_64.rpm
+          # Follow the post-installation instructions
           ```
           
-          This will build the plugin with Nix and create complete packages.
+          ### Arch Linux
+          ```bash
+          # Extract and use makepkg
+          tar xzf hyprland-stack3d-1.0.0-PKGBUILD.tar.gz
+          cd hyprland-stack3d-1.0.0
+          makepkg -si
+          ```
+          
+          ## Post-Installation
+          
+          All packages require building the plugin with Nix:
+          
+          1. Install Nix: `curl -L https://nixos.org/nix/install | sh`
+          2. Clone repo: `git clone https://github.com/olafkfreund/3Dstack-hyrpland.git`
+          3. Build: `cd 3Dstack-hyrpland && nix build`
+          4. Copy plugin to system location (as shown in package post-install)
+          5. Add to Hyprland config: `plugin = /usr/lib/hyprland/stack3d.so`
+          
+          ## Configuration
+          
+          Add to ~/.config/hypr/hyprland.conf:
+          
+          ```
+          plugin = /usr/lib/hyprland/stack3d.so
+          
+          plugin {
+              stack3d {
+                  enable = true
+                  transition_duration = 0.8
+                  default_layout = grid
+              }
+          }
+          
+          bind = SUPER, grave, stack3d, toggle
+          bind = SUPER SHIFT, grave, stack3d, cycle_layout
+          ```
           EOF
           
-          # Debian package structure
-          tar czf hyprland-stack3d-1.0.0-debian.tar.gz debian/ BUILD.md
-          
-          # Fedora package structure  
-          tar czf hyprland-stack3d-1.0.0-fedora.tar.gz fedora/ BUILD.md
-          
-          # Arch package structure
-          tar czf hyprland-stack3d-1.0.0-arch.tar.gz arch/ BUILD.md
-          
-          echo "Package structures created:"
-          ls -la *.tar.gz
+          echo "Final packages ready:"
+          ls -la *.deb *.rpm *.tar.gz 2>/dev/null || true
           
       - name: Create checksums
         run: |
           cd packages
-          sha256sum *.tar.gz > checksums.sha256
+          sha256sum *.deb *.rpm *.tar.gz > checksums.sha256
           echo "Checksums created:"
           cat checksums.sha256
           
@@ -323,9 +474,11 @@ jobs:
         with:
           name: distribution-packages
           path: |
+            packages/*.deb
+            packages/*.rpm  
             packages/*.tar.gz
             packages/checksums.sha256
-            packages/BUILD.md
+            packages/INSTALLATION.md
           retention-days: 30
           
       - name: Package Summary
@@ -333,18 +486,18 @@ jobs:
           echo "Distribution packages built successfully!"
           echo ""
           echo "Built packages:"
-          ls -la packages/*.tar.gz
+          ls -la packages/*.deb packages/*.rpm packages/*.tar.gz
           echo ""
           echo "Package checksums:"
           cat packages/checksums.sha256
           echo ""
-          echo "Package Contents:"
-          echo "  - Debian: Package structure with control file and documentation"
-          echo "  - Fedora: RPM spec file and package structure"  
-          echo "  - Arch: PKGBUILD and .SRCINFO for AUR"
+          echo "Package Types Created:"
+          echo "  - Debian: .deb package with post-install instructions"
+          echo "  - Fedora: .rpm package with post-install scripts"  
+          echo "  - Arch: PKGBUILD for makepkg installation"
           echo ""
-          echo "Note: Plugin binary must be built separately with 'nix build'"
-          echo "Total packages created: $(ls packages/*.tar.gz | wc -l)"
+          echo "Installation: Each package guides users through Nix build process"
+          echo "Total packages created: $(ls packages/*.deb packages/*.rpm packages/*.tar.gz | wc -l)"
 
       - name: Release Information
         run: |
@@ -352,19 +505,19 @@ jobs:
           echo "           HYPRLAND STACK3D PLUGIN v1.0.0"
           echo "==============================================="
           echo ""
-          echo "Distribution packages created and uploaded as workflow artifacts."
+          echo "Real distribution packages created and uploaded as workflow artifacts."
           echo ""
-          echo "To create a GitHub release:"
-          echo "1. Go to: https://github.com/olafkfreund/3Dstack-hyrpland/releases/new"
-          echo "2. Tag: v1.0.0"
-          echo "3. Title: Hyprland Stack3D Plugin v1.0.0" 
-          echo "4. Download and attach the artifacts from this workflow run"
+          echo "Package Types:"
+          echo "  - hyprland-stack3d_1.0.0_amd64.deb (Debian/Ubuntu)"
+          echo "  - hyprland-stack3d-1.0.0-1.x86_64.rpm (Fedora/RHEL)"
+          echo "  - hyprland-stack3d-1.0.0-PKGBUILD.tar.gz (Arch Linux)"
           echo ""
-          echo "Package files ready for release:"
-          echo "  - hyprland-stack3d-1.0.0-debian.tar.gz"
-          echo "  - hyprland-stack3d-1.0.0-fedora.tar.gz"  
-          echo "  - hyprland-stack3d-1.0.0-arch.tar.gz"
-          echo "  - checksums.sha256"
-          echo "  - BUILD.md"
+          echo "Users can install these packages which will:"
+          echo "  1. Install framework and documentation"
+          echo "  2. Show post-install instructions for building with Nix"
+          echo "  3. Guide through plugin installation process"
           echo ""
-          echo "Installation: Users can build with 'nix build' then use distribution packages"
+          echo "To create GitHub release:"
+          echo "  1. Download artifacts from this workflow"
+          echo "  2. Create release at: https://github.com/olafkfreund/3Dstack-hyrpland/releases/new"
+          echo "  3. Tag: v1.0.0, attach all package files"
