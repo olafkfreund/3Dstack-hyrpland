@@ -6,7 +6,7 @@
     flake-utils.url = "github:numtide/flake-utils";
     
     hyprland = {
-      url = "github:hyprwm/Hyprland";
+      url = "github:hyprwm/Hyprland/cb6589db98325705cef5dcaf92ccdf41ab21386d";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -26,8 +26,8 @@
           src = ./.;
 
           nativeBuildInputs = with pkgs; [
+            cmake
             gcc
-            gnumake
             pkg-config
           ];
 
@@ -35,19 +35,19 @@
             pixman
             libdrm
             hyprlandDev
+            wayland
           ] ++ hyprlandDev.buildInputs;
 
-          # Set C++ standard and compilation flags
-          makeFlags = [
-            "CXX=${pkgs.gcc}/bin/g++"
-            "CXXFLAGS=-shared -fPIC -g -std=c++23 -Wall -Wextra"
-            "INCLUDES=-Iinclude ${pkgs.pkg-config}/bin/pkg-config --cflags pixman-1 libdrm hyprland"
-            "LIBS=${pkgs.pkg-config}/bin/pkg-config --libs pixman-1 libdrm hyprland"
-          ];
+          # Use CMake for building
+          configurePhase = ''
+            runHook preConfigure
+            cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+            runHook postConfigure
+          '';
 
           buildPhase = ''
             runHook preBuild
-            make
+            cmake --build build
             runHook postBuild
           '';
 
@@ -57,7 +57,7 @@
           installPhase = ''
             runHook preInstall
             mkdir -p $out/lib
-            cp stack3d.so $out/lib/libhyprland-stack3d.so
+            cp build/stack3d.so $out/lib/libhyprland-stack3d.so
             runHook postInstall
           '';
 
@@ -76,6 +76,7 @@
           
           nativeBuildInputs = with pkgs; [
             # Build tools
+            cmake
             gcc
             gnumake
             pkg-config

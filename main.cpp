@@ -1,9 +1,9 @@
-#include <src/Compositor.hpp>
-#include <src/desktop/Window.hpp>
-#include <src/config/ConfigManager.hpp>
-#include <src/managers/KeybindManager.hpp>
-#include <src/managers/AnimationManager.hpp>
-#include <src/plugins/PluginAPI.hpp>
+#include <hyprland/src/Compositor.hpp>
+#include <hyprland/src/desktop/Window.hpp>
+#include <hyprland/src/config/ConfigManager.hpp>
+#include <hyprland/src/managers/KeybindManager.hpp>
+#include <hyprland/src/managers/AnimationManager.hpp>
+#include <hyprland/src/plugins/PluginAPI.hpp>
 
 #include "include/Stack3DPlugin.hpp"
 
@@ -14,11 +14,11 @@ std::unique_ptr<Stack3DPlugin> g_pStack3DPlugin;
 // Use C linkage for plugin functions to ensure correct symbol names
 extern "C" {
 
-APICALL EXPORT const char* PLUGIN_API_VERSION() {
+APICALL EXPORT const char* pluginAPIVersion() {
     return HYPRLAND_API_VERSION;
 }
 
-APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
+APICALL EXPORT PLUGIN_DESCRIPTION_INFO pluginInit(HANDLE handle) {
     PHANDLE = handle;
     
     const std::string HASH = __hyprland_api_get_hash();
@@ -54,7 +54,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
             "1.0.0"};
 }
 
-APICALL EXPORT void PLUGIN_EXIT() {
+APICALL EXPORT void pluginExit() {
     if (g_pStack3DPlugin) {
         g_pStack3DPlugin.reset();
     }

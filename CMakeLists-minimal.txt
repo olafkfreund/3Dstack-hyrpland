@@ -1,0 +1,33 @@
+cmake_minimum_required(VERSION 3.16)
+project(minimal-plugin VERSION 1.0.0 DESCRIPTION "Minimal Hyprland plugin for testing")
+
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+find_package(PkgConfig REQUIRED)
+
+# Find required dependencies using pkg-config like official plugins
+pkg_check_modules(deps REQUIRED IMPORTED_TARGET
+    hyprland
+    pixman-1
+)
+
+# Create the minimal plugin shared library
+add_library(minimal SHARED minimal.cpp)
+
+# Set output name
+set_target_properties(minimal PROPERTIES
+    OUTPUT_NAME "minimal"
+    PREFIX ""
+)
+
+# Link against Hyprland and dependencies
+target_link_libraries(minimal PRIVATE PkgConfig::deps)
+
+# Set compile flags
+target_compile_options(minimal PRIVATE -Wall -Wextra -fPIC)
+
+# Install target
+install(TARGETS minimal
+    LIBRARY DESTINATION lib
+)

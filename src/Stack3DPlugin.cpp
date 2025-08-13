@@ -1,7 +1,7 @@
 #include "../include/Stack3DPlugin.hpp"
-#include <src/config/ConfigManager.hpp>
-#include <src/managers/KeybindManager.hpp>
-#include <src/Compositor.hpp>
+#include <hyprland/src/config/ConfigManager.hpp>
+#include <hyprland/src/managers/KeybindManager.hpp>
+#include <hyprland/src/Compositor.hpp>
 
 Stack3DPlugin::Stack3DPlugin(HANDLE handle) 
     : m_handle(handle), m_currentState(StackState::SPREAD_LAYOUT) {
