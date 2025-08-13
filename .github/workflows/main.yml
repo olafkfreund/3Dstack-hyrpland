@@ -24,12 +24,14 @@ jobs:
         uses: cachix/install-nix-action@v23
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
-          
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            
       - name: Build plugin
         run: |
           echo "🔨 Building Hyprland Stack3D plugin..."
-          nix develop --command make clean
-          nix develop --command make
+          nix develop --no-update-lock-file --command make clean
+          nix develop --no-update-lock-file --command make
           
       - name: Verify build
         run: |
@@ -61,12 +63,14 @@ jobs:
         uses: cachix/install-nix-action@v23
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
-          
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            
       - name: Build plugin
         run: |
           echo "🔨 Building plugin for ${{ matrix.distro }}..."
-          nix develop --command make clean
-          nix develop --command make
+          nix develop --no-update-lock-file --command make clean
+          nix develop --no-update-lock-file --command make
           
       - name: Create ${{ matrix.distro }} package
         run: |
