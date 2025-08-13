@@ -346,86 +346,25 @@ jobs:
           echo "Note: Plugin binary must be built separately with 'nix build'"
           echo "Total packages created: $(ls packages/*.tar.gz | wc -l)"
 
-      - name: Create Release
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v1.0.0
-          name: "Hyprland Stack3D Plugin v1.0.0"
-          draft: false
-          prerelease: false
-          generate_release_notes: true
-          body: |
-            # Hyprland Stack3D Plugin v1.0.0
-            
-            3D stack layout plugin for Hyprland with physics-based animations and smooth transitions.
-            
-            ## Features
-            
-            * Physics-based animations with spring dynamics
-            * Multiple layout modes (grid, cascade, spiral, fibonacci)
-            * Customizable transition effects and bezier curve easing
-            * Motion blur effects and 3D perspective transforms
-            * Configurable keybindings and plugin settings
-            
-            ## Installation
-            
-            ### Building from Source
-            
-            ```bash
-            # Clone the repository
-            git clone https://github.com/olafkfreund/3Dstack-hyrpland.git
-            cd 3Dstack-hyrpland
-            
-            # Build with Nix (recommended)
-            nix build
-            
-            # Copy to Hyprland plugins directory
-            cp result/lib/stack3d.so ~/.config/hypr/plugins/
-            ```
-            
-            ### Distribution Packages
-            
-            Download the appropriate package for your distribution:
-            
-            - **Debian/Ubuntu**: `hyprland-stack3d-1.0.0-debian.tar.gz`
-            - **Fedora/RHEL**: `hyprland-stack3d-1.0.0-fedora.tar.gz`
-            - **Arch Linux**: `hyprland-stack3d-1.0.0-arch.tar.gz`
-            
-            Each package includes complete documentation and installation instructions.
-            
-            ## Configuration
-            
-            Add to your Hyprland configuration:
-            
-            ```
-            plugin = ~/.config/hypr/plugins/stack3d.so
-            
-            plugin {
-                stack3d {
-                    enable = true
-                    transition_duration = 0.8
-                    default_layout = grid
-                }
-            }
-            
-            # Keybindings
-            bind = SUPER, grave, stack3d, toggle
-            bind = SUPER SHIFT, grave, stack3d, cycle_layout
-            ```
-            
-            ## Usage
-            
-            - `SUPER + grave`: Toggle between stack and spread view
-            - `SUPER + SHIFT + grave`: Cycle through layout modes
-            - `hyprctl dispatch stack3d toggle`: Manual toggle via command
-            
-            ---
-            
-            **Package Checksums:** See `checksums.sha256` for file verification.
-          files: |
-            packages/*.tar.gz
-            packages/checksums.sha256
-            packages/BUILD.md
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Release Information
+        run: |
+          echo "==============================================="
+          echo "           HYPRLAND STACK3D PLUGIN v1.0.0"
+          echo "==============================================="
+          echo ""
+          echo "Distribution packages created and uploaded as workflow artifacts."
+          echo ""
+          echo "To create a GitHub release:"
+          echo "1. Go to: https://github.com/olafkfreund/3Dstack-hyrpland/releases/new"
+          echo "2. Tag: v1.0.0"
+          echo "3. Title: Hyprland Stack3D Plugin v1.0.0" 
+          echo "4. Download and attach the artifacts from this workflow run"
+          echo ""
+          echo "Package files ready for release:"
+          echo "  - hyprland-stack3d-1.0.0-debian.tar.gz"
+          echo "  - hyprland-stack3d-1.0.0-fedora.tar.gz"  
+          echo "  - hyprland-stack3d-1.0.0-arch.tar.gz"
+          echo "  - checksums.sha256"
+          echo "  - BUILD.md"
+          echo ""
+          echo "Installation: Users can build with 'nix build' then use distribution packages"
