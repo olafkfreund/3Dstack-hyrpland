@@ -1,0 +1,21 @@
+pkgbase = hyprland-stack3d
+	pkgdesc = 3D stack layout plugin for Hyprland
+	pkgver = 1.0.0
+	pkgrel = 1
+	url = https://github.com/olafkfreund/3Dstack-hyrpland
+	arch = x86_64
+	license = MIT
+	makedepends = gcc
+	makedepends = make
+	makedepends = pkg-config
+	depends = hyprland
+	depends = pixman
+	depends = libdrm
+	source = stack3d.so
+	source = README.md
+	source = example-hyprland.conf
+	sha256sums = SKIP
+	sha256sums = SKIP
+	sha256sums = SKIP
+
+pkgname = hyprland-stack3d

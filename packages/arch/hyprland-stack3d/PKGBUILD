@@ -1,0 +1,54 @@
+# Maintainer: Stack3D Team <team@example.com>
+
+pkgname=hyprland-stack3d
+pkgver=1.0.0
+pkgrel=1
+pkgdesc="3D stack layout plugin for Hyprland"
+arch=('x86_64')
+url="https://github.com/olafkfreund/3Dstack-hyrpland"
+license=('MIT')
+depends=('hyprland' 'pixman' 'libdrm')
+makedepends=('gcc' 'make' 'pkg-config')
+source=("stack3d.so" "README.md" "example-hyprland.conf")
+sha256sums=('SKIP' 'SKIP' 'SKIP')
+
+package() {
+    # Install plugin binary
+    install -Dm755 "$srcdir/stack3d.so" "$pkgdir/usr/lib/hyprland/stack3d.so"
+    
+    # Install documentation
+    install -Dm644 "$srcdir/README.md" "$pkgdir/usr/share/doc/$pkgname/README.md"
+    install -Dm644 "$srcdir/example-hyprland.conf" "$pkgdir/usr/share/doc/$pkgname/example-hyprland.conf"
+    
+    # Create installation instructions
+    cat > "$pkgdir/usr/share/doc/$pkgname/INSTALL.md" << 'INSTEOF'
+# hyprland-stack3d Installation
+
+## Configuration
+
+Add to your Hyprland config:
+
+```
+plugin = /usr/lib/hyprland/stack3d.so
+
+plugin {
+    stack3d {
+        enable = true
+        transition_duration = 0.8
+        default_layout = grid
+    }
+}
+
+# Keybindings
+bind = SUPER, grave, stack3d, toggle
+bind = SUPER SHIFT, grave, stack3d, cycle_layout
+```
+
+## Usage
+
+- `SUPER + grave`: Toggle stack view
+- `SUPER + SHIFT + grave`: Cycle layout modes
+- `hyprctl dispatch stack3d toggle`: Manual toggle
+
+INSTEOF
+}

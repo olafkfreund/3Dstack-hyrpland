@@ -1,0 +1,21 @@
+Package: hyprland-stack3d
+Version: 1.0.0
+Section: x11
+Priority: optional
+Architecture: amd64
+Depends: hyprland
+Maintainer: Stack3D Team <team@example.com>
+Description: 3D stack layout plugin for Hyprland
+ Adds 3D perspective stack window management to Hyprland compositor
+ with physics-based animations and smooth transitions.
+ .
+ This package provides advanced window stacking capabilities including:
+ * Physics-based animations with spring dynamics
+ * Multiple layout modes (grid, cascade, spiral)  
+ * Customizable transition effects
+ * Bezier curve easing functions
+ * Motion blur effects
+ * Configurable keybindings
+ .
+ The plugin integrates seamlessly with Hyprland's existing window
+ management system and can be controlled via hyprctl commands.

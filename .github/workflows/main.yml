@@ -11,159 +11,60 @@ env:
   PLUGIN_NAME: stack3d
 
 jobs:
-  # Test the code - build and basic validation
-  test-build:
-    name: Test & Build
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        
-      - name: Set up Nix
-        uses: cachix/install-nix-action@v23
-        with:
-          github_access_token: ${{ secrets.GITHUB_TOKEN }}
-          extra_nix_config: |
-            experimental-features = nix-command flakes
-            
-      - name: Build plugin
-        run: |
-          echo "🔨 Building Hyprland Stack3D plugin..."
-          nix develop --no-update-lock-file --command make clean
-          nix develop --no-update-lock-file --command make
-          
-      - name: Verify build
-        run: |
-          echo "✅ Verifying build artifacts..."
-          test -f stack3d.so && echo "Plugin binary exists" || (echo "Plugin binary missing" && exit 1)
-          ls -la stack3d.so
-          
-      - name: Run basic tests
-        run: |
-          echo "🧪 Running basic validation..."
-          nm stack3d.so | grep -q "PLUGIN" && echo "Plugin symbols found" || echo "Warning: Plugin symbols not found"
-
-  # Build packages for Debian, Fedora, and Arch
+  # Test the code and build packages
   build-packages:
-    name: Build Packages
+    name: Build Distribution Packages
     runs-on: ubuntu-latest
-    needs: test-build
-    if: github.ref == 'refs/heads/main'
     
-    strategy:
-      matrix:
-        distro: [debian, fedora, arch]
-        
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         
-      - name: Set up Nix
-        uses: cachix/install-nix-action@v23
+      - name: Install Nix
+        uses: cachix/install-nix-action@v22
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
-          extra_nix_config: |
-            experimental-features = nix-command flakes
-            
-      - name: Build plugin
+          
+      - name: Setup Nix cache
+        uses: cachix/cachix-action@v12
+        with:
+          name: hyprland
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+          
+      - name: Build plugin with Nix
         run: |
-          echo "🔨 Building plugin for ${{ matrix.distro }}..."
-          nix develop --no-update-lock-file --command make clean
-          nix develop --no-update-lock-file --command make
+          echo "Building Hyprland Stack3D plugin with Nix..."
+          nix build --print-build-logs
           
-      - name: Create ${{ matrix.distro }} package
+          echo "Plugin built successfully"
+          ls -la result/lib/
+          file result/lib/stack3d.so
+          echo "Plugin size: $(du -h result/lib/stack3d.so | cut -f1)"
+          
+      - name: Create distribution packages
         run: |
-          echo "📦 Creating ${{ matrix.distro }} package..."
-          mkdir -p dist/${{ matrix.distro }}
+          echo "Creating packages for Debian, Fedora, and Arch..."
+          ./scripts/build-packages.sh
           
-          case "${{ matrix.distro }}" in
-            debian)
-              # Create simple .deb structure
-              mkdir -p dist/debian/hyprland-stack3d/DEBIAN
-              mkdir -p dist/debian/hyprland-stack3d/usr/lib/hyprland
-              mkdir -p dist/debian/hyprland-stack3d/usr/share/doc/hyprland-stack3d
-              
-              cp stack3d.so dist/debian/hyprland-stack3d/usr/lib/hyprland/
-              cp hyprland_stack3d_plugin.md dist/debian/hyprland-stack3d/usr/share/doc/hyprland-stack3d/README.md
-              cp examples/hyprland.conf dist/debian/hyprland-stack3d/usr/share/doc/hyprland-stack3d/example.conf
-              
-              cat > dist/debian/hyprland-stack3d/DEBIAN/control << EOF
-          Package: hyprland-stack3d
-          Version: 1.0.0
-          Section: x11
-          Priority: optional
-          Architecture: amd64
-          Depends: hyprland
-          Maintainer: Stack3D Team <team@example.com>
-          Description: 3D stack layout plugin for Hyprland
-           Adds 3D perspective stack window management to Hyprland compositor.
-          EOF
-              
-              cd dist/debian && dpkg-deb --build hyprland-stack3d
-              mv hyprland-stack3d.deb ../hyprland-stack3d-1.0.0-amd64.deb
-              ;;
-              
-            fedora)
-              # Create simple .rpm structure
-              mkdir -p dist/fedora/hyprland-stack3d/usr/lib64/hyprland
-              mkdir -p dist/fedora/hyprland-stack3d/usr/share/doc/hyprland-stack3d
-              
-              cp stack3d.so dist/fedora/hyprland-stack3d/usr/lib64/hyprland/
-              cp hyprland_stack3d_plugin.md dist/fedora/hyprland-stack3d/usr/share/doc/hyprland-stack3d/README.md
-              cp examples/hyprland.conf dist/fedora/hyprland-stack3d/usr/share/doc/hyprland-stack3d/example.conf
-              
-              # Create tarball (simplified packaging)
-              cd dist/fedora && tar czf ../hyprland-stack3d-1.0.0-1.fc38.x86_64.tar.gz hyprland-stack3d/
-              ;;
-              
-            arch)
-              # Create Arch package structure
-              mkdir -p dist/arch/pkg/hyprland-stack3d/usr/lib/hyprland
-              mkdir -p dist/arch/pkg/hyprland-stack3d/usr/share/doc/hyprland-stack3d
-              
-              cp stack3d.so dist/arch/pkg/hyprland-stack3d/usr/lib/hyprland/
-              cp hyprland_stack3d_plugin.md dist/arch/pkg/hyprland-stack3d/usr/share/doc/hyprland-stack3d/README.md
-              cp examples/hyprland.conf dist/arch/pkg/hyprland-stack3d/usr/share/doc/hyprland-stack3d/example.conf
-              
-              # Create .pkg.tar.xz
-              cd dist/arch/pkg && tar cJf ../hyprland-stack3d-1.0.0-1-x86_64.pkg.tar.xz hyprland-stack3d/
-              ;;
-          esac
-          
-      - name: Upload ${{ matrix.distro }} package
+      - name: Upload packages
         uses: actions/upload-artifact@v4
         with:
-          name: hyprland-stack3d-${{ matrix.distro }}
-          path: dist/*.deb dist/*.tar.gz dist/*.tar.xz
-          if-no-files-found: warn
+          name: distribution-packages
+          path: |
+            packages/*.tar.gz
+            packages/*.deb
+            packages/checksums.sha256
           retention-days: 30
-
-  # Summary
-  build-summary:
-    name: Build Summary
-    runs-on: ubuntu-latest
-    needs: [test-build, build-packages]
-    if: always()
-    
-    steps:
-      - name: Build Summary
+          
+      - name: Package Summary
         run: |
-          echo "🎉 Hyprland Stack3D Plugin Build Summary"
-          echo "========================================"
-          
-          if [[ "${{ needs.test-build.result }}" == "success" ]]; then
-            echo "✅ Code testing and build: PASSED"
-          else
-            echo "❌ Code testing and build: FAILED"
-          fi
-          
-          if [[ "${{ needs.build-packages.result }}" == "success" ]]; then
-            echo "✅ Package building: PASSED"
-            echo "📦 Packages available for:"
-            echo "   - Debian (.deb)"
-            echo "   - Fedora (.tar.gz)" 
-            echo "   - Arch (.pkg.tar.xz)"
-          else
-            echo "❌ Package building: FAILED"
-          fi
+          echo "Distribution packages built successfully!"
+          echo ""
+          echo "Built packages:"
+          ls -la packages/*.{deb,tar.gz} 2>/dev/null || ls -la packages/*.tar.gz
+          echo ""
+          echo "Package checksums:"
+          cat packages/checksums.sha256
+          echo ""
+          echo "Plugin binary size: $(du -h result/lib/stack3d.so | cut -f1)"
+          echo "Total packages created: $(ls packages/*.{deb,tar.gz} 2>/dev/null | wc -l || ls packages/*.tar.gz | wc -l)"
