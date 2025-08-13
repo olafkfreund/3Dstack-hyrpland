@@ -374,3 +374,60 @@ This section documents important lessons learned during the development of this 
 - Clear task descriptions that can be resumed if interrupted
 
 This retrospective serves as a knowledge base for future development sessions, documenting both successful patterns and challenges encountered during this project's development.
+
+### 12. **Hyprland Plugin Crash Resolution: Critical Debugging Session**
+
+**Problem**: Plugin would compile successfully but crash Hyprland on load
+**Root Cause Analysis**: Multiple interrelated issues discovered through systematic debugging
+
+**Key Issues Identified**:
+
+1. **Function Naming Convention**:
+   - **Wrong**: Used `PLUGIN_API_VERSION()`, `PLUGIN_INIT()`, `PLUGIN_EXIT()` 
+   - **Correct**: Hyprland expects `pluginAPIVersion()`, `pluginInit()`, `pluginExit()` (camelCase)
+   - **Detection**: Symbol inspection with `nm plugin.so` revealed correct export names
+
+2. **Header Include Paths**:
+   - **Wrong**: `#include <src/plugins/PluginAPI.hpp>`
+   - **Correct**: `#include <hyprland/src/plugins/PluginAPI.hpp>` for Nix environments
+   - **Impact**: Compilation failures and missing symbol definitions
+
+3. **Build System Approach**:
+   - **Wrong**: Manual Makefile with hardcoded compilation flags
+   - **Correct**: CMake with pkg-config following official plugin patterns
+   - **Research Source**: Official Hyprland plugins repository structure analysis
+
+**Resolution Process**:
+
+1. **Research Phase**: Analyzed official Hyprland plugins repository for build patterns
+2. **Minimal Testing**: Created ultra-minimal plugins to isolate crash causes  
+3. **Symbol Analysis**: Used `nm` and `objdump` to verify correct symbol exports
+4. **Build System Migration**: Switched to CMake with proper pkg-config integration
+5. **Version Pinning**: Ensured exact header/runtime version matching
+
+**Critical Research Findings**:
+- Official plugins ALL use CMake with pkg-config for dependency resolution
+- Function names must match exact camelCase format expected by plugin loader
+- Nix development headers require `hyprland/` prefix for proper resolution
+- ABI compatibility requires exact version matching between build and runtime
+
+**Best Practice for Plugin Crashes**:
+1. **Start with minimal plugin** - test basic loading before adding functionality
+2. **Verify symbol exports** - use `nm plugin.so | grep plugin` to check names
+3. **Follow official patterns** - research actual plugin repositories, not documentation
+4. **Use CMake + pkg-config** - don't try to manually manage compilation flags
+5. **Test incrementally** - add functionality only after basic loading works
+
+**Reference Guide Created**: 
+`CLAUDE-HYPRLAND-PLUGIN-DEVELOPMENT.md` - Comprehensive guide for all future Hyprland plugin development, incorporating all lessons learned from this debugging session.
+
+**Time Investment vs. Value**: 
+Extensive debugging session (multiple attempts over several iterations) that resulted in fundamental understanding of Hyprland plugin architecture. This knowledge is now documented for reuse across projects.
+
+This debugging experience highlights the importance of:
+- Following official project patterns rather than trying to create custom approaches
+- Systematic troubleshooting (minimal test cases, symbol verification, incremental testing)
+- Research-driven development (analyzing working examples rather than just documentation)
+- Creating reusable knowledge artifacts (comprehensive guides) from complex debugging sessions
+
+The resolution demonstrates that plugin crashes are often caused by fundamental build system or API contract issues rather than code logic problems.
