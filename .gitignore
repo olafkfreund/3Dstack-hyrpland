@@ -1,0 +1,246 @@
+# Hyprland Stack3D Plugin - GitIgnore
+# Generated for C++ plugin development with Nix
+
+## Build Artifacts
+# Compiled plugin
+*.so
+stack3d.so
+
+# Object files
+*.o
+*.obj
+*.ko
+*.elf
+
+# Linker output
+*.ilk
+*.map
+*.exp
+
+# Static libraries
+*.a
+*.la
+*.lib
+
+# Shared libraries
+*.dll
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+
+## Build directories
+build/
+dist/
+target/
+
+## Testing artifacts
+# Test executables
+test_*
+*_test
+test_runner
+test_stack3d
+
+# Test coverage
+*.gcov
+*.gcda
+*.gcno
+*.lcov
+coverage/
+htmlcov/
+
+# Performance profiling
+perf.data*
+callgrind.*
+cachegrind.*
+massif.*
+*.prof
+
+# Core dumps
+core
+core.*
+vgcore.*
+
+## Development tools
+# Debugging
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Static analysis
+cppcheck.xml
+scan-build/
+clang-static-analyzer/
+
+# Memory checking
+*.log
+valgrind-*.xml
+*.memcheck
+
+# Assembly listings
+*.s
+*.asm
+
+## Editor/IDE files
+# VSCode
+.vscode/
+*.code-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+.*.un~
+Session.vim
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# JetBrains
+.idea/
+*.iml
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+## Nix specific
+# Build results
+result
+result-*
+
+# Nix shell environments
+.envrc
+.direnv/
+
+# Development shells
+shell.nix.bak
+
+## System files
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+
+# Linux
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+## Temporary files
+# General temporary
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+*~
+
+# Logs
+*.log
+logs/
+
+# Runtime
+*.pid
+*.seed
+*.lock
+
+## Documentation builds
+# Generated docs
+docs/_build/
+docs/html/
+docs/latex/
+site/
+
+## Archive files
+*.tar
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tgz
+*.zip
+*.rar
+*.7z
+
+## Hyprland specific
+# Plugin installation
+plugins/
+*.hyprplugin
+
+# Configuration backups
+hyprland.conf.bak
+*.conf.backup
+
+## Custom development
+# Local configuration overrides
+local.conf
+dev.conf
+.local/
+
+# Personal notes and TODO
+TODO.personal
+NOTES.md
+.notes/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Certificates and keys
+*.pem
+*.key
+*.cert
+*.csr
+*.crt
+
+## Package managers (if used)
+# npm/yarn (for documentation tools)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python (for build scripts)
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+
+# Rust (if Rust tools used)
+target/
+Cargo.lock
+
+## Specific to this project
+# Test data
+test_data/
+fixtures/
+
+# Benchmarking results
+benchmarks/
+*.benchmark
+
+# Documentation drafts
+DRAFT_*
+*.draft.md

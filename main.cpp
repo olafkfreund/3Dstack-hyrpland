@@ -1,9 +1,9 @@
-#include <hyprland/src/Compositor.hpp>
-#include <hyprland/src/Window.hpp>
-#include <hyprland/src/config/ConfigManager.hpp>
-#include <hyprland/src/managers/KeybindManager.hpp>
-#include <hyprland/src/managers/AnimationManager.hpp>
-#include <hyprland/src/plugins/PluginAPI.hpp>
+#include <src/Compositor.hpp>
+#include <src/desktop/Window.hpp>
+#include <src/config/ConfigManager.hpp>
+#include <src/managers/KeybindManager.hpp>
+#include <src/managers/AnimationManager.hpp>
+#include <src/plugins/PluginAPI.hpp>
 
 #include "include/Stack3DPlugin.hpp"
 
@@ -16,7 +16,8 @@ APICALL EXPORT std::string PLUGIN_API_VERSION() {
 }
 
 APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
-    HyprlandAPI::registerCallbackDynamic(handle, "configReloaded", [&](void* self, std::any data) {
+    HyprlandAPI::registerCallbackDynamic(handle, "configReloaded", [&](void* self, SCallbackInfo&, std::any data) {
+        (void)self; (void)data;
         if (g_pStack3DPlugin) {
             g_pStack3DPlugin->onConfigReload();
         }
@@ -29,7 +30,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     g_pStack3DPlugin->registerKeybinds();
 
     HyprlandAPI::addNotification(handle, "[stack3d] Plugin loaded successfully!", 
-                                 CColor{0.2f, 0.8f, 0.3f, 1.0f}, 3000);
+                                 CHyprColor(), 3000);
 
     return {"Stack3D Animation", 
             "3D stack sliding animations for windows", 

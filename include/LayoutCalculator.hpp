@@ -2,8 +2,9 @@
 
 #include <vector>
 #include <cmath>
-#include <hyprland/src/Window.hpp>
-#include <hyprland/src/helpers/Vector2D.hpp>
+#include <src/desktop/Window.hpp>
+#include <src/helpers/math/Math.hpp>
+#include <src/Compositor.hpp>
 
 // Forward declaration for Vector3D (we'll define it here since it's not in Hyprland)
 struct Vector3D {

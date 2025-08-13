@@ -1,5 +1,5 @@
 #include "../include/AnimationSystem.hpp"
-#include <hyprland/src/Compositor.hpp>
+#include <src/Compositor.hpp>
 #include <algorithm>
 
 AnimationSystem::AnimationSystem(float baseDuration, float maxStagger)
@@ -138,11 +138,11 @@ BezierCurve AnimationSystem::createEasingCurve(TransitionStyle style) {
 void AnimationSystem::applyWindowTransform(CWindow* window, const WindowLayout& layout) {
     if (!window) return;
     
-    // Apply position
-    window->m_vRealPosition = layout.position;
+    // Apply position using animated variable setValueAndWarp
+    window->m_realPosition->setValueAndWarp(layout.position);
     
-    // Apply size
-    window->m_vRealSize = layout.size;
+    // Apply size using animated variable setValueAndWarp
+    window->m_realSize->setValueAndWarp(layout.size);
     
     // For alpha, we would need to use Hyprland's rendering system
     // This is a simplified version - actual implementation would need

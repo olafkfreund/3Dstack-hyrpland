@@ -1,0 +1,189 @@
+# Pre-commit hooks configuration for Hyprland Stack3D Plugin
+# See https://pre-commit.com for more information
+
+repos:
+  # General file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '\.patch$'
+      - id: end-of-file-fixer
+        exclude: '\.patch$'
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
+      - id: check-yaml
+        exclude: '\.clang-format$'
+      - id: check-json
+      - id: check-toml
+      - id: check-xml
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-symlinks
+      - id: destroyed-symlinks
+      - id: fix-byte-order-marker
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+
+  # C++ formatting and linting
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v17.0.6
+    hooks:
+      - id: clang-format
+        args: [--style=file]
+        files: \.(cpp|hpp|cc|cxx|h|hxx)$
+
+  # CMake formatting
+  - repo: https://github.com/cheshirekow/cmake-format-precommit
+    rev: v0.6.13
+    hooks:
+      - id: cmake-format
+        additional_dependencies: [pyyaml]
+        types: [file]
+        files: (\.cmake|CMakeLists\.txt)$
+
+  # Shell script checking
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.9.0.6
+    hooks:
+      - id: shellcheck
+        args: [-e, SC1091]  # Ignore sourcing non-existent files
+
+  # Markdown formatting
+  - repo: https://github.com/executablebooks/mdformat
+    rev: 0.7.17
+    hooks:
+      - id: mdformat
+        additional_dependencies:
+          - mdformat-gfm
+          - mdformat-black
+        exclude: 'CHANGELOG\.md'
+
+  # Nix formatting
+  - repo: https://github.com/nix-community/nixpkgs-fmt
+    rev: v1.3.0
+    hooks:
+      - id: nixpkgs-fmt
+
+  # YAML/JSON formatting
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
+    hooks:
+      - id: prettier
+        types_or: [yaml, json]
+        exclude: '\.clang-format$'
+
+  # Git commit message formatting
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v3.13.0
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]
+
+  # Security scanning
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: '\.lock$|\.git/'
+
+  # Local hooks for C++ specific checks
+  - repo: local
+    hooks:
+      # C++ linting with clang-tidy
+      - id: clang-tidy
+        name: clang-tidy
+        entry: clang-tidy
+        language: system
+        files: \.(cpp|cc|cxx)$
+        args:
+          - --config-file=.clang-tidy
+          - --header-filter=.*
+          - --
+          - -std=c++23
+          - -Iinclude
+          - -Isrc
+
+      # C++ static analysis with cppcheck
+      - id: cppcheck
+        name: cppcheck
+        entry: cppcheck
+        language: system
+        files: \.(cpp|hpp|cc|cxx|h|hxx)$
+        args:
+          - --enable=all
+          - --error-exitcode=1
+          - --suppress=missingIncludeSystem
+          - --suppress=unusedFunction
+          - --suppress=unmatchedSuppression
+          - --inline-suppr
+          - --std=c++23
+          - -Iinclude
+          - -Isrc
+
+      # Check for TODO/FIXME comments
+      - id: check-todos
+        name: Check TODO/FIXME comments
+        entry: bash -c 'if grep -rn "TODO\|FIXME\|XXX\|HACK" --include="*.cpp" --include="*.hpp" src/ include/; then echo "❌ Found TODO/FIXME comments. Please resolve or document them."; exit 1; else echo "✅ No unresolved TODO/FIXME comments"; fi'
+        language: system
+        pass_filenames: false
+
+      # Check for debug prints
+      - id: check-debug-prints
+        name: Check for debug prints
+        entry: bash -c 'if grep -rn "std::cout\|printf\|std::cerr" --include="*.cpp" --include="*.hpp" src/ include/ | grep -v "// DEBUG:"; then echo "❌ Found debug print statements. Please remove or mark with // DEBUG:"; exit 1; else echo "✅ No debug print statements found"; fi'
+        language: system
+        pass_filenames: false
+
+      # Validate plugin API usage
+      - id: hyprland-api-check
+        name: Validate Hyprland API usage
+        entry: bash -c 'if grep -rn "getConfigValuePtr\|addKeybind" --include="*.cpp" src/ && ! grep -rn "// API:" src/; then echo "⚠️ Found deprecated Hyprland API usage. Please check compatibility."; fi'
+        language: system
+        pass_filenames: false
+        verbose: true
+
+      # Check file permissions
+      - id: check-file-permissions
+        name: Check file permissions
+        entry: bash -c 'find . -name "*.cpp" -o -name "*.hpp" -o -name "*.md" | xargs ls -la | grep "^-rw[xs]" && echo "❌ Found executable source files" && exit 1 || echo "✅ File permissions OK"'
+        language: system
+        pass_filenames: false
+
+      # Validate includes
+      - id: check-includes
+        name: Check include patterns
+        entry: bash -c 'if grep -rn "#include <hyprland/" --include="*.cpp" --include="*.hpp" src/ include/; then echo "❌ Found old include patterns. Use #include <src/...> instead"; exit 1; else echo "✅ Include patterns are correct"; fi'
+        language: system
+        pass_filenames: false
+
+      # Check for memory leaks patterns
+      - id: check-memory-patterns
+        name: Check memory management patterns
+        entry: bash -c 'if grep -rn "new \|malloc\|calloc" --include="*.cpp" --include="*.hpp" src/ include/ | grep -v "std::\|smart_ptr\|unique_ptr\|shared_ptr"; then echo "⚠️ Found raw memory allocation. Consider using smart pointers."; fi'
+        language: system
+        pass_filenames: false
+        verbose: true
+
+      # Build test
+      - id: build-test
+        name: Build test
+        entry: bash -c 'if command -v nix >/dev/null 2>&1; then echo "🔨 Testing build..."; nix develop --command just build && echo "✅ Build successful"; else echo "⚠️ Nix not available, skipping build test"; fi'
+        language: system
+        pass_filenames: false
+
+# Configuration for specific tools
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: [clang-tidy, cppcheck, build-test]  # Skip heavy checks in CI
+  submodules: false

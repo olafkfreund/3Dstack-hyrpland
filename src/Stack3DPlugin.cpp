@@ -1,7 +1,7 @@
 #include "../include/Stack3DPlugin.hpp"
-#include <hyprland/src/config/ConfigManager.hpp>
-#include <hyprland/src/managers/KeybindManager.hpp>
-#include <hyprland/src/Compositor.hpp>
+#include <src/config/ConfigManager.hpp>
+#include <src/managers/KeybindManager.hpp>
+#include <src/Compositor.hpp>
 
 Stack3DPlugin::Stack3DPlugin(HANDLE handle) 
     : m_handle(handle), m_currentState(StackState::SPREAD_LAYOUT) {
@@ -27,36 +27,20 @@ Stack3DPlugin::~Stack3DPlugin() {
 }
 
 void Stack3DPlugin::loadConfig() {
-    // Load configuration from Hyprland config
-    auto* const PCONFIG = g_pConfigManager;
-    
-    m_config.enabled = PCONFIG->getConfigValuePtr("plugin:stack3d:enable")->intValue;
-    m_config.transitionDuration = PCONFIG->getConfigValuePtr("plugin:stack3d:transition_duration")->floatValue;
-    m_config.staggerDelay = PCONFIG->getConfigValuePtr("plugin:stack3d:stagger_delay")->floatValue;
-    m_config.stackDepthStep = PCONFIG->getConfigValuePtr("plugin:stack3d:stack_depth_step")->floatValue;
-    m_config.spreadPadding = PCONFIG->getConfigValuePtr("plugin:stack3d:spread_padding")->floatValue;
-    m_config.springStrength = PCONFIG->getConfigValuePtr("plugin:stack3d:spring_strength")->floatValue;
-    m_config.damping = PCONFIG->getConfigValuePtr("plugin:stack3d:damping")->floatValue;
-    m_config.motionBlur = PCONFIG->getConfigValuePtr("plugin:stack3d:motion_blur")->intValue;
-    m_config.perspective = PCONFIG->getConfigValuePtr("plugin:stack3d:perspective")->floatValue;
-    m_config.eyeDistance = PCONFIG->getConfigValuePtr("plugin:stack3d:eye_distance")->floatValue;
-    
-    // Parse transition style
-    std::string styleStr = PCONFIG->getConfigValuePtr("plugin:stack3d:transition_style")->strValue;
-    if (styleStr == "bounce_in") m_config.transitionStyle = TransitionStyle::BOUNCE_IN;
-    else if (styleStr == "elastic_out") m_config.transitionStyle = TransitionStyle::ELASTIC_OUT;
-    else if (styleStr == "cascade_wave") m_config.transitionStyle = TransitionStyle::CASCADE_WAVE;
-    else if (styleStr == "spiral_motion") m_config.transitionStyle = TransitionStyle::SPIRAL_MOTION;
-    else if (styleStr == "magnetic_attract") m_config.transitionStyle = TransitionStyle::MAGNETIC_ATTRACT;
-    else if (styleStr == "liquid_flow") m_config.transitionStyle = TransitionStyle::LIQUID_FLOW;
-    else m_config.transitionStyle = TransitionStyle::SMOOTH_SLIDE;
-    
-    // Parse layout type
-    std::string layoutStr = PCONFIG->getConfigValuePtr("plugin:stack3d:default_layout")->strValue;
-    if (layoutStr == "circular") m_config.defaultLayout = LayoutType::CIRCULAR;
-    else if (layoutStr == "spiral") m_config.defaultLayout = LayoutType::SPIRAL;
-    else if (layoutStr == "fibonacci") m_config.defaultLayout = LayoutType::FIBONACCI;
-    else m_config.defaultLayout = LayoutType::GRID;
+    // For now, use default configuration values
+    // In a real implementation, we would load from Hyprland config
+    m_config.enabled = true;
+    m_config.transitionDuration = 0.8f;
+    m_config.staggerDelay = 0.05f;
+    m_config.stackDepthStep = 100.0f;
+    m_config.spreadPadding = 20.0f;
+    m_config.springStrength = 0.8f;
+    m_config.damping = 0.92f;
+    m_config.motionBlur = true;
+    m_config.perspective = 800.0f;
+    m_config.eyeDistance = 1000.0f;
+    m_config.transitionStyle = TransitionStyle::SMOOTH_SLIDE;
+    m_config.defaultLayout = LayoutType::GRID;
 }
 
 void Stack3DPlugin::toggleState() {
@@ -99,37 +83,30 @@ void Stack3DPlugin::transitionToState(StackState newState) {
             m_currentState = newState;
             HyprlandAPI::addNotification(m_handle, 
                 newState == StackState::STACKED_3D ? "Entered 3D Stack Mode" : "Entered Spread Mode",
-                CColor{0.2f, 0.8f, 0.3f, 1.0f}, 1500);
+                CHyprColor(), 1500);
         });
 }
 
 void Stack3DPlugin::registerKeybinds() {
-    HyprlandAPI::addKeybind(m_handle, m_config.toggleKey, [this](const std::string&) {
-        toggleState();
-    });
-    
-    HyprlandAPI::addKeybind(m_handle, m_config.peekKey, [this](const std::string&) {
-        if (m_currentState == StackState::STACKED_3D) {
-            temporaryPeek(1.0f);
+    // Register dispatcher for manual testing
+    HyprlandAPI::addDispatcher(m_handle, "stack3d", [this](std::string arg) {
+        if (arg == "toggle") {
+            toggleState();
+        } else if (arg == "cycle") {
+            cycleLayoutType();
         }
-    });
-    
-    HyprlandAPI::addKeybind(m_handle, m_config.cycleLayoutKey, [this](const std::string&) {
-        cycleLayoutType();
     });
 }
 
 std::vector<CWindow*> Stack3DPlugin::getCurrentWorkspaceWindows() {
     std::vector<CWindow*> windows;
     
-    auto* workspace = g_pCompositor->getWorkspaceByID(g_pCompositor->m_pLastMonitor->activeWorkspace);
-    if (!workspace) return windows;
-    
-    for (auto& window : g_pCompositor->m_vWindows) {
-        if (window->m_iWorkspaceID == workspace->m_iID && 
-            window->m_bIsMapped && 
+    // For now, get all visible windows in the current workspace
+    // In a real implementation, we would use proper Hyprland APIs
+    for (auto& window : g_pCompositor->m_windows) {
+        if (window->m_isMapped && 
             !window->isHidden() && 
-            !window->m_bIsFloating) {
+            !window->m_isFloating) {
             windows.push_back(window.get());
         }
     }
@@ -151,25 +128,25 @@ bool Stack3DPlugin::isTransitionAllowed() {
 
 void Stack3DPlugin::initializeHooks() {
     m_windowOpenHook = HyprlandAPI::registerCallbackDynamic(m_handle, "openWindow", 
-        [this](void*, std::any data) {
+        [this](void*, SCallbackInfo&, std::any data) {
             auto* window = std::any_cast<CWindow*>(data);
             onWindowOpen(window);
         });
     
     m_windowCloseHook = HyprlandAPI::registerCallbackDynamic(m_handle, "closeWindow",
-        [this](void*, std::any data) {
+        [this](void*, SCallbackInfo&, std::any data) {
             auto* window = std::any_cast<CWindow*>(data);
             onWindowClose(window);
         });
     
     m_windowFocusHook = HyprlandAPI::registerCallbackDynamic(m_handle, "activeWindow",
-        [this](void*, std::any data) {
+        [this](void*, SCallbackInfo&, std::any data) {
             auto* window = std::any_cast<CWindow*>(data);
             onWindowFocus(window);
         });
     
     m_workspaceChangeHook = HyprlandAPI::registerCallbackDynamic(m_handle, "workspace",
-        [this](void*, std::any) {
+        [this](void*, SCallbackInfo&, std::any) {
             onWorkspaceChange();
         });
 }

@@ -5,9 +5,9 @@
 #include <unordered_map>
 #include <chrono>
 
-#include <hyprland/src/Compositor.hpp>
-#include <hyprland/src/Window.hpp>
-#include <hyprland/src/plugins/PluginAPI.hpp>
+#include <src/Compositor.hpp>
+#include <src/desktop/Window.hpp>
+#include <src/plugins/PluginAPI.hpp>
 
 #include "LayoutCalculator.hpp"
 #include "AnimationSystem.hpp"

@@ -60,9 +60,64 @@ check: lint
     @echo "✅ Running quality checks..."
     @echo "All checks passed!"
 
-# Build and run basic tests
+# Build and run comprehensive tests
 test: build
-    @echo "🧪 Running tests..."
+    @echo "🧪 Building and running comprehensive test suite..."
+    cd tests && make clean && make
+    cd tests && ./test_stack3d
+
+# Run specific test suites
+test-bezier: 
+    @echo "🧪 Testing BezierCurve component..."
+    cd tests && make test-bezier
+
+test-physics:
+    @echo "🧪 Testing PhysicsMotion component..."
+    cd tests && make test-physics
+
+test-layout:
+    @echo "🧪 Testing LayoutCalculator component..."
+    cd tests && make test-layout
+
+test-animation:
+    @echo "🧪 Testing AnimationSystem component..."
+    cd tests && make test-animation
+
+test-plugin:
+    @echo "🧪 Testing Stack3DPlugin component..."
+    cd tests && make test-plugin
+
+test-integration:
+    @echo "🧪 Running integration tests..."
+    cd tests && make test-integration
+
+test-unit:
+    @echo "🧪 Running all unit tests..."
+    cd tests && make test-unit
+
+# Test with memory checking
+test-memory:
+    @echo "🧪 Running tests with memory analysis..."
+    cd tests && make test-memory
+
+# Test with coverage analysis
+test-coverage:
+    @echo "🧪 Running tests with coverage analysis..."
+    cd tests && make test-coverage
+
+# Run quick smoke tests
+test-smoke:
+    @echo "🧪 Running smoke tests..."
+    cd tests && make test-smoke
+
+# Stress test the plugin
+test-stress:
+    @echo "🧪 Running stress tests..."
+    cd tests && make test-stress
+
+# Basic symbol and binary tests
+test-basic: build
+    @echo "🧪 Running basic binary tests..."
     @echo "Test: Check if plugin file exists..."
     test -f stack3d.so && echo "✅ Plugin binary exists" || echo "❌ Plugin binary missing"
     @echo "Test: Check if plugin has required symbols..."
@@ -77,15 +132,49 @@ run-hyprland: install
     Hyprland
 
 # Development workflow - build, test, and show status
-dev: build test
+dev: build test-basic test-unit
     @echo "🎉 Development build complete!"
     @ls -la stack3d.so
 
 # Set up development environment
 setup:
     @echo "🛠️ Setting up development environment..."
-    @echo "Entering Nix development shell..."
+    ./scripts/setup-dev.sh
+
+# Enter Nix development shell
+shell:
+    @echo "🛠️ Entering Nix development shell..."
     nix develop
+
+# Run pre-commit hooks manually
+precommit:
+    @echo "🔍 Running pre-commit hooks..."
+    pre-commit run --all-files
+
+# Run pre-commit hooks on specific files
+precommit-files *FILES:
+    @echo "🔍 Running pre-commit hooks on {{FILES}}..."
+    pre-commit run --files {{FILES}}
+
+# Static analysis with clang-tidy (using config file)
+analyze-static:
+    @echo "🕵️ Running static analysis with clang-tidy..."
+    clang-tidy src/*.cpp main.cpp --config-file=.clang-tidy -- -Iinclude -std=c++23
+
+# Security scanning with detect-secrets
+security-scan:
+    @echo "🔒 Running security scan..."
+    detect-secrets scan --baseline .secrets.baseline --all-files
+
+# Commit with commitizen
+commit:
+    @echo "💾 Creating standardized commit..."
+    cz commit
+
+# Auto-format code with clang-format
+format-code:
+    @echo "🎨 Formatting C++ code with clang-format..."
+    find src include -name "*.cpp" -o -name "*.hpp" | xargs clang-format -i
 
 # Update flake inputs
 update:
@@ -165,7 +254,7 @@ commit MESSAGE:
     git commit -m "{{MESSAGE}}"
 
 # Run all checks before committing
-pre-commit: format lint test
+pre-commit: format lint test-basic test-unit
     @echo "✅ Pre-commit checks complete!"
 
 # Show help for common development tasks
@@ -182,14 +271,32 @@ help:
     @echo "  just install   - Install to ~/.config/hypr/plugins/"
     @echo ""
     @echo "🧪 Testing commands:"
-    @echo "  just test      - Run basic tests"
-    @echo "  just dev       - Full development workflow"
+    @echo "  just test           - Run comprehensive test suite"
+    @echo "  just test-basic     - Run basic binary/symbol tests"
+    @echo "  just test-unit      - Run all unit tests"
+    @echo "  just test-bezier    - Test BezierCurve component"
+    @echo "  just test-physics   - Test PhysicsMotion component"
+    @echo "  just test-layout    - Test LayoutCalculator component"
+    @echo "  just test-animation - Test AnimationSystem component"
+    @echo "  just test-plugin    - Test Stack3DPlugin component"
+    @echo "  just test-integration - Run integration tests"
+    @echo "  just test-memory    - Test with memory analysis"
+    @echo "  just test-coverage  - Test with coverage analysis"
+    @echo "  just test-smoke     - Run quick smoke tests"
+    @echo "  just test-stress    - Run stress tests"
+    @echo "  just dev            - Full development workflow"
     @echo ""
     @echo "✨ Quality commands:"
-    @echo "  just format    - Format code"
-    @echo "  just lint      - Run linters"
-    @echo "  just check     - All quality checks"
+    @echo "  just format         - Format code (Nix + uncrustify)"
+    @echo "  just format-code    - Format C++ code (clang-format)"
+    @echo "  just lint           - Run linters"
+    @echo "  just check          - All quality checks"
+    @echo "  just precommit      - Run pre-commit hooks"
+    @echo "  just analyze-static - Static analysis (clang-tidy)"
+    @echo "  just security-scan  - Security scanning"
     @echo ""
     @echo "🛠️ Environment:"
-    @echo "  just setup     - Enter development shell"
+    @echo "  just setup     - Set up development environment"
+    @echo "  just shell     - Enter Nix development shell"
+    @echo "  just commit    - Create standardized commit (commitizen)"
     @echo "  just info      - Show project information"

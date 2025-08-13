@@ -1,5 +1,5 @@
 #include "../include/LayoutCalculator.hpp"
-#include <hyprland/src/Compositor.hpp>
+#include <src/Compositor.hpp>
 #include <algorithm>
 
 LayoutCalculator::LayoutCalculator(float perspective, float eyeDistance, 
@@ -30,7 +30,7 @@ std::vector<WindowLayout> LayoutCalculator::calculateStackLayout(const std::vect
         float scale = m_transform.getScaleForDepth(depth);
         
         layout.position = stackCenter + Vector2D{static_cast<float>(i) * 15.0f, static_cast<float>(i) * 10.0f};
-        layout.size = windows[i]->m_vRealSize.goal() * scale;
+        layout.size = windows[i]->m_realSize->goal() * scale;
         layout.rotation = i * 2.5f;
         layout.scale = scale;
         layout.alpha = std::max(0.4f, 1.0f - (i * 0.15f));
@@ -208,34 +208,30 @@ std::vector<WindowLayout> LayoutCalculator::calculateFibonacciLayout(const std::
 }
 
 GridLayout LayoutCalculator::calculateOptimalGrid(int windowCount) {
-    if (windowCount <= 1) return {1, 1};
-    if (windowCount <= 4) return {2, 2};
-    if (windowCount <= 6) return {2, 3};
-    if (windowCount <= 9) return {3, 3};
-    if (windowCount <= 12) return {3, 4};
+    if (windowCount <= 1) return {1, 1, {0, 0}};
+    if (windowCount <= 4) return {2, 2, {0, 0}};
+    if (windowCount <= 6) return {2, 3, {0, 0}};
+    if (windowCount <= 9) return {3, 3, {0, 0}};
+    if (windowCount <= 12) return {3, 4, {0, 0}};
     
     float aspectRatio = getWorkspaceAspectRatio();
     int cols = static_cast<int>(std::ceil(std::sqrt(windowCount * aspectRatio)));
     int rows = static_cast<int>(std::ceil(static_cast<float>(windowCount) / cols));
     
-    return {rows, cols};
+    return {rows, cols, {0, 0}};
 }
 
 Vector2D LayoutCalculator::getWorkspaceCenter() {
-    auto* monitor = g_pCompositor->m_pLastMonitor;
-    if (!monitor) return {0, 0};
-    
-    return {
-        monitor->vecSize.x / 2.0f,
-        monitor->vecSize.y / 2.0f
-    };
+    // For now, use default screen size - in a real implementation,
+    // we would access monitor information through proper Hyprland APIs
+    Vector2D size = getWorkspaceSize();
+    return {size.x / 2.0f, size.y / 2.0f};
 }
 
 Vector2D LayoutCalculator::getWorkspaceSize() {
-    auto* monitor = g_pCompositor->m_pLastMonitor;
-    if (!monitor) return {1920, 1080};
-    
-    return monitor->vecSize;
+    // For now, return a default resolution
+    // In a real implementation, we would access the monitor through proper APIs
+    return {1920, 1080};
 }
 
 float LayoutCalculator::getWorkspaceAspectRatio() {

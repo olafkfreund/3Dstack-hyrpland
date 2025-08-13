@@ -1,8 +1,8 @@
 #pragma once
 
 #include <unordered_map>
-#include <hyprland/src/Window.hpp>
-#include <hyprland/src/helpers/Vector2D.hpp>
+#include <src/desktop/Window.hpp>
+#include <src/helpers/math/Math.hpp>
 
 struct MotionState {
     Vector2D velocity;
