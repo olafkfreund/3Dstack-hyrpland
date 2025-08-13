@@ -154,12 +154,13 @@ void AnimationSystem::applyWindowTransform(CWindow* window, const WindowLayout& 
     }
 }
 
-void AnimationSystem::addMotionBlur(CWindow* window, Vector2D velocity) {
-    // Motion blur implementation would integrate with Hyprland's rendering pipeline
-    // This is a placeholder for the actual implementation
-    (void)window; // Suppress unused parameter warning
-    (void)velocity;
-}
+// Motion blur functionality commented out for now - TODO: implement when needed
+// void AnimationSystem::addMotionBlur(CWindow* window, Vector2D velocity) {
+//     // Motion blur implementation would integrate with Hyprland's rendering pipeline
+//     // This is a placeholder for the actual implementation
+//     (void)window; // Suppress unused parameter warning
+//     (void)velocity;
+// }
 
 Vector2D AnimationSystem::calculateVelocity(const WindowTransition& transition, float progress) {
     if (progress <= 0.0f || progress >= 1.0f) {

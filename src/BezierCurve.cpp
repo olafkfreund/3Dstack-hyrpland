@@ -26,20 +26,21 @@ float BezierCurve::cubicBezier(float t, float p1, float p2) const {
     return 3 * uu * t * p1 + 3 * u * tt * p2 + ttt;
 }
 
-float BezierCurve::solveCubicBezier(float x) const {
-    // Newton-Raphson method to solve for t given x
-    // This is a simplified version - for production use, consider a more robust implementation
-    float t = x; // Initial guess
-    
-    for (int i = 0; i < 8; i++) {
-        float currentX = cubicBezier(t, m_x1, m_x2);
-        float derivative = 3 * (1 - t) * (1 - t) * m_x1 + 6 * (1 - t) * t * (m_x2 - m_x1) + 3 * t * t * (1 - m_x2);
-        
-        if (std::abs(derivative) < 1e-6f) break;
-        
-        t = t - (currentX - x) / derivative;
-        t = std::clamp(t, 0.0f, 1.0f);
-    }
-    
-    return t;
-}
+// Cubic solver implementation commented out for now - TODO: implement when needed
+// float BezierCurve::solveCubicBezier(float x) const {
+//     // Newton-Raphson method to solve for t given x
+//     // This is a simplified version - for production use, consider a more robust implementation
+//     float t = x; // Initial guess
+//     
+//     for (int i = 0; i < 8; i++) {
+//         float currentX = cubicBezier(t, m_x1, m_x2);
+//         float derivative = 3 * (1 - t) * (1 - t) * m_x1 + 6 * (1 - t) * t * (m_x2 - m_x1) + 3 * t * t * (1 - m_x2);
+//         
+//         if (std::abs(derivative) < 1e-6f) break;
+//         
+//         t = t - (currentX - x) / derivative;
+//         t = std::clamp(t, 0.0f, 1.0f);
+//     }
+//     
+//     return t;
+// }
