@@ -25,7 +25,7 @@ private:
     float m_globalSpring;
     
 public:
-    PhysicsMotion(float globalSpring = 0.8f, float globalDamping = 0.92f);
+    explicit PhysicsMotion(float globalSpring = 0.8f, float globalDamping = 0.92f);
     
     // Force application
     void addSpringForce(CWindow* window, Vector2D targetPos, Vector2D currentPos);

@@ -89,7 +89,7 @@ void Stack3DPlugin::transitionToState(StackState newState) {
 
 void Stack3DPlugin::registerKeybinds() {
     // Register dispatcher for manual testing
-    HyprlandAPI::addDispatcher(m_handle, "stack3d", [this](std::string arg) {
+    HyprlandAPI::addDispatcher(m_handle, "stack3d", [this](const std::string& arg) {
         if (arg == "toggle") {
             toggleState();
         } else if (arg == "cycle") {

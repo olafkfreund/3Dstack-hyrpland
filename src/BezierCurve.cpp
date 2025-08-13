@@ -17,7 +17,8 @@ float BezierCurve::cubicBezier(float t, float p1, float p2) const {
     float u = 1.0f - t;
     float tt = t * t;
     float uu = u * u;
-    float uuu = uu * u;
+    // Note: uuu would be used for more complex Bezier calculations
+    // float uuu = uu * u;
     float ttt = tt * t;
     
     // Cubic Bezier formula: B(t) = (1-t)³P₀ + 3(1-t)²tP₁ + 3(1-t)t²P₂ + t³P₃

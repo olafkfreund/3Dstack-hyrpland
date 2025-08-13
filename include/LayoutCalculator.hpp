@@ -9,7 +9,7 @@
 // Forward declaration for Vector3D (we'll define it here since it's not in Hyprland)
 struct Vector3D {
     float x, y, z;
-    Vector3D(float x = 0, float y = 0, float z = 0) : x(x), y(y), z(z) {}
+    explicit Vector3D(float x = 0, float y = 0, float z = 0) : x(x), y(y), z(z) {}
 };
 
 struct WindowLayout {
@@ -51,7 +51,7 @@ private:
     float m_padding;
     
 public:
-    LayoutCalculator(float perspective = 800.0f, float eyeDistance = 1000.0f, 
+    explicit LayoutCalculator(float perspective = 800.0f, float eyeDistance = 1000.0f, 
                     float depthStep = 100.0f, float padding = 20.0f);
     
     // Layout calculations

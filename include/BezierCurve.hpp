@@ -18,5 +18,5 @@ public:
     
 private:
     float cubicBezier(float t, float p1, float p2) const;
-    float solveCubicBezier(float x) const;
+    // float solveCubicBezier(float x) const;  // TODO: Implement cubic solver
 };

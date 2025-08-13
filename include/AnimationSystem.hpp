@@ -61,7 +61,7 @@ private:
     std::function<void()> m_onComplete;
     
 public:
-    AnimationSystem(float baseDuration = 0.8f, float maxStagger = 0.3f);
+    explicit AnimationSystem(float baseDuration = 0.8f, float maxStagger = 0.3f);
     
     // Animation control
     void startTransition(const std::vector<WindowLayout>& startLayouts,
@@ -83,7 +83,7 @@ public:
 private:
     BezierCurve createEasingCurve(TransitionStyle style);
     void applyWindowTransform(CWindow* window, const WindowLayout& layout);
-    void addMotionBlur(CWindow* window, Vector2D velocity);
+    // void addMotionBlur(CWindow* window, Vector2D velocity);  // TODO: Implement motion blur
     Vector2D calculateVelocity(const WindowTransition& transition, float progress);
     
     // Interpolation helpers
