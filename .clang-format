@@ -113,7 +113,6 @@ BreakBeforeConceptDeclarations: Always
 BreakBeforeInlineASMColon: OnlyMultiline
 CompactNamespaces: false
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
-Cpp11BracedListStyle: true
 EmptyLineAfterAccessModifier: Never
 EmptyLineBeforeAccessModifier: LogicalBlock
 FixNamespaceComments: true
