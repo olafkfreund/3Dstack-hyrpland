@@ -57,7 +57,7 @@
           installPhase = ''
             runHook preInstall
             mkdir -p $out/lib
-            cp stack3d.so $out/lib/
+            cp stack3d.so $out/lib/libhyprland-stack3d.so
             runHook postInstall
           '';
 
