@@ -86,8 +86,8 @@ IncludeCategories:
     Priority: 4
     SortPriority: 4
 
-# C++23 specific
-Standard: c++23
+# C++ standard (using c++20 for broader clang-format compatibility)
+Standard: c++20
 Cpp11BracedListStyle: true
 
 # Indentation
