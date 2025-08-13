@@ -23,7 +23,7 @@ jobs:
       - name: Install package build tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y dpkg-deb rpm build-essential
+          sudo apt-get install -y rpm build-essential
         
       - name: Build Debian package
         run: |
