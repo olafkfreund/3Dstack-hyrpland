@@ -7,7 +7,6 @@ BasedOnStyle: Google
 
 # Language
 Language: Cpp
-Standard: Cpp17
 
 # Basic formatting
 ColumnLimit: 120
