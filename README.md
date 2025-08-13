@@ -11,9 +11,9 @@ Transform your Hyprland experience with beautiful, physics-based window animatio
 
 ![Demo Animation](docs/assets/demo.gif)
 
-## ✨ Features
+## Features
 
-### 🎬 Animation Styles
+### Animation Styles
 - **Smooth Slide** - Clean, professional transitions
 - **Bounce In** - Playful bounce effect on arrival  
 - **Elastic Out** - Elastic overshoot and settle
@@ -22,13 +22,13 @@ Transform your Hyprland experience with beautiful, physics-based window animatio
 - **Magnetic Attract** - Snap-to-place effect
 - **Liquid Flow** - Fluid, organic movement
 
-### 📐 Layout Types
+### Layout Types
 - **Grid Layout** - Optimal rectangular arrangement based on window count
 - **Circular Layout** - Windows arranged in a perfect circle
 - **Spiral Layout** - Expanding logarithmic spiral with rotation
 - **Fibonacci Layout** - Golden ratio-based recursive splitting
 
-### ⚙️ Advanced Features
+### Advanced Features
 - **Physics-Based Motion** - Spring-damping system for realistic movement
 - **3D Perspective** - True 3D transformations with configurable depth
 - **Motion Blur** - Velocity-based blur effects during transitions
@@ -36,7 +36,7 @@ Transform your Hyprland experience with beautiful, physics-based window animatio
 - **Real-time Configuration** - Hot-reload settings without restart
 - **Performance Optimized** - 60 FPS smooth animations with minimal CPU usage
 
-## 🚀 Quick Start
+## Quick Start
 
 ### NixOS (Recommended)
 
@@ -84,7 +84,7 @@ plugin {
 }
 ```
 
-## 🎯 Usage
+## Usage
 
 ### Default Keybindings
 - **`SUPER + grave`** - Toggle between 3D stack and spread layout
@@ -105,27 +105,27 @@ hyprctl plugin stack3d set_style bounce_in
 hyprctl plugin stack3d set_style elastic_out
 ```
 
-## 📚 Documentation
+## Documentation
 
-### 📖 User Documentation
+### User Documentation
 - **[Installation Guide](docs/installation.md)** - Complete setup instructions
 - **[Configuration Reference](docs/configuration.md)** - All configuration options
 - **[User Manual](docs/guides/user-manual.md)** - How to use the plugin
 - **[Troubleshooting](docs/troubleshooting.md)** - Common issues and solutions
 
-### 🎨 Examples & Tutorials  
+### Examples & Tutorials  
 - **[Productivity Setup](docs/examples/productivity.md)** - Work-optimized configurations
 - **[Gaming Configuration](docs/examples/gaming.md)** - Low-latency setup
 - **[Aesthetic Showcase](docs/examples/aesthetic.md)** - Beautiful visual effects
 - **[Multi-Monitor Setup](docs/examples/multi-monitor.md)** - Complex monitor configs
 
-### 🏗️ Developer Documentation
+### Developer Documentation
 - **[Architecture Overview](docs/architecture.md)** - System design and components
 - **[API Reference](docs/api/)** - Complete programming interface  
 - **[Development Guide](docs/guides/development.md)** - Setup development environment
 - **[Contributing Guide](docs/guides/contributing.md)** - How to contribute
 
-## 🏗️ Architecture
+## Architecture
 
 The plugin uses a modular architecture with five core components:
 
@@ -144,7 +144,7 @@ Stack3DPlugin (Coordinator)
 - **Math**: 3D perspective projection, cubic Bezier curves, spring physics
 - **Performance**: Single-threaded, event-driven, 60 FPS optimized
 
-## 🎮 Configuration Examples
+## Configuration Examples
 
 ### Productivity (Fast & Clean)
 ```bash
@@ -186,7 +186,7 @@ plugin {
 }
 ```
 
-## 🛠️ Development
+## Development
 
 ### Quick Development Setup
 
@@ -224,7 +224,7 @@ just dev            # Full development workflow
 just package        # Create distribution package
 ```
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions! Please see our [Contributing Guide](docs/guides/contributing.md) for details.
 
@@ -243,7 +243,7 @@ We welcome contributions! Please see our [Contributing Guide](docs/guides/contri
 - **Code formatting** with uncrustify
 - **Documentation** for all public APIs
 
-## 📊 Performance
+## Performance
 
 ### Benchmarks
 - **Animation Performance**: 60 FPS smooth transitions
@@ -257,38 +257,38 @@ We welcome contributions! Please see our [Contributing Guide](docs/guides/contri
 - **Memory Pooling**: Efficient memory management
 - **Early Termination**: Skip unnecessary calculations
 
-## 🌟 Community
+## Community
 
 - **GitHub Issues**: Bug reports and feature requests
 - **GitHub Discussions**: Questions and community help  
 - **Hyprland Discord**: General Hyprland support (#plugins)
 - **Reddit**: r/hyprland community
 
-## 📜 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - **Hyprland Team** - For the amazing Wayland compositor and plugin API
 - **NixOS Community** - For the excellent development ecosystem  
 - **Contributors** - Everyone who helps improve this project
 - **Users** - For feedback, bug reports, and feature requests
 
-## 📈 Project Status
+## Project Status
 
-- ✅ **Core Features**: Complete implementation
-- ✅ **NixOS Integration**: Full flake support with modules
-- ✅ **Documentation**: Comprehensive user and developer docs
-- ✅ **Testing**: Unit tests and integration validation
-- 🚧 **Package Distribution**: Working on AUR and other package managers
-- 🔮 **Future Features**: Custom layouts, advanced physics, scripting API
+- **Core Features**: Complete implementation
+- **NixOS Integration**: Full flake support with modules
+- **Documentation**: Comprehensive user and developer docs
+- **Testing**: Unit tests and integration validation
+- **Package Distribution**: Working on AUR and other package managers
+- **Future Features**: Custom layouts, advanced physics, scripting API
 
 ---
 
 **Ready to transform your Hyprland experience?** 
 
-⭐ Star this repository if you find it useful!  
-📚 Check out the [documentation](docs/) for detailed guides  
-🤝 Contributions are welcome - see [Contributing Guide](docs/guides/contributing.md)  
-🐛 Found an issue? Report it on [GitHub Issues](https://github.com/yourusername/hyprland-stack3d/issues)
+Star this repository if you find it useful!  
+Check out the [documentation](docs/) for detailed guides  
+Contributions are welcome - see [Contributing Guide](docs/guides/contributing.md)  
+Found an issue? Report it on [GitHub Issues](https://github.com/yourusername/hyprland-stack3d/issues)
