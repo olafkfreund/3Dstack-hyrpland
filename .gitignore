@@ -244,3 +244,7 @@ benchmarks/
 # Documentation drafts
 DRAFT_*
 *.draft.md
+
+## AI Development Context
+# Private development guidance for AI assistants
+CLAUDE.md
