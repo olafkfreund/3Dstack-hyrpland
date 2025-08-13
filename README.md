@@ -7,6 +7,26 @@
 
 > **Smooth 3D stack animations with sliding transitions between stacked and spread window layouts for Hyprland**
 
+## ⚠️ **WORK IN PROGRESS - NOT READY FOR USE**
+
+**🚨 WARNING: This plugin is currently in active development and is NOT ready for production use.**
+
+**Current Status:**
+- ✅ Code architecture and build system completed
+- ✅ CMake build system with proper Hyprland integration
+- ✅ Comprehensive testing framework 
+- ✅ NixOS flake configuration
+- 🔄 **Plugin functionality is NOT yet implemented**
+- 🔄 **Hyprland integration is NOT yet working**
+- ❌ **DO NOT attempt to install or use this plugin yet**
+
+**What works:** Build system, code compilation, and development environment
+**What doesn't work:** Actual 3D stack animations and Hyprland integration
+
+The plugin will crash Hyprland if loaded in its current state. Please wait for a stable release before attempting to use this plugin.
+
+---
+
 Transform your Hyprland experience with beautiful, physics-based window animations that provide both visual appeal and practical functionality. Stack windows in 3D space, then smoothly transition to organized spread layouts with customizable easing curves and layout algorithms.
 
 ![Demo Animation](docs/assets/demo.gif)
