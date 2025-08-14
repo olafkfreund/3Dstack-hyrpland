@@ -66,14 +66,19 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO pluginInit(HANDLE handle) {
         HyprlandAPI::addNotification(PHANDLE, "[3DStack] Command: " + arg, 
                                      CHyprColor{0.0, 1.0, 0.0, 1.0}, 2000);
         if (arg == "toggle") {
-            // Get current workspace windows
+            // Get current workspace windows (simplified for debugging)
             std::vector<CWindow*> workspaceWindows;
+            
             for (auto &window : g_pCompositor->m_windows) {
                 if (!window || !window->m_isMapped || window->isHidden() || window->isFullscreen()) {
                     continue;
                 }
+                // For now, include all mapped windows to test basic functionality
                 workspaceWindows.push_back(window.get());
             }
+            
+            HyprlandAPI::addNotification(PHANDLE, "Found " + std::to_string(workspaceWindows.size()) + " windows", 
+                                         CHyprColor{0.0, 0.5, 1.0, 1.0}, 2000);
             
             if (workspaceWindows.empty()) {
                 HyprlandAPI::addNotification(PHANDLE, "No windows to stack", 
@@ -137,7 +142,8 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO pluginInit(HANDLE handle) {
                     window->m_realSize->setValueAndWarp(windowSize);
                     
                     // Apply 3D depth effect with transparency
-                    float alpha = (positionInStack == currentFrontWindow % windowsPerStack) ? 1.0f : 
+                    // Front window (position 0) is always fully opaque, others fade based on depth
+                    float alpha = (positionInStack == 0) ? 1.0f : 
                                   std::max(0.4f, 1.0f - (positionInStack * 0.15f));
                     if (window->m_activeInactiveAlpha) {
                         window->m_activeInactiveAlpha->setValueAndWarp(alpha);
@@ -205,7 +211,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO pluginInit(HANDLE handle) {
                 auto* window = workspaceWindows[i];
                 int positionInStack = i % windowsPerStack;
                 
-                // Set alpha: front window is opaque, others fade based on depth
+                // Set alpha: current front window is fully opaque, others fade based on depth
                 float alpha = (positionInStack == currentFrontWindow) ? 1.0f : 
                               std::max(0.4f, 1.0f - (positionInStack * 0.15f));
                               
