@@ -10,8 +10,12 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(deps REQUIRED IMPORTED_TARGET
     hyprland
     libdrm
+    libinput
+    libudev  
+    pangocairo
     pixman-1
     wayland-server
+    xkbcommon
 )
 
 # Create the plugin shared library
@@ -30,8 +34,8 @@ set_target_properties(stack3d PROPERTIES
     PREFIX ""
 )
 
-# Link against Hyprland and dependencies
-target_link_libraries(stack3d PRIVATE PkgConfig::deps)
+# Link against Hyprland and dependencies (following official plugin pattern)
+target_link_libraries(stack3d PRIVATE rt PkgConfig::deps)
 
 # Set compile flags
 target_compile_options(stack3d PRIVATE -Wall -Wextra -fPIC)

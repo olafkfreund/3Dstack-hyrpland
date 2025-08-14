@@ -27,20 +27,32 @@ Stack3DPlugin::~Stack3DPlugin() {
 }
 
 void Stack3DPlugin::loadConfig() {
-    // For now, use default configuration values
-    // In a real implementation, we would load from Hyprland config
-    m_config.enabled = true;
-    m_config.transitionDuration = 0.8f;
-    m_config.staggerDelay = 0.05f;
-    m_config.stackDepthStep = 100.0f;
-    m_config.spreadPadding = 20.0f;
-    m_config.springStrength = 0.8f;
-    m_config.damping = 0.92f;
-    m_config.motionBlur = true;
-    m_config.perspective = 800.0f;
-    m_config.eyeDistance = 1000.0f;
-    m_config.transitionStyle = TransitionStyle::SMOOTH_SLIDE;
-    m_config.defaultLayout = LayoutType::GRID;
+    // Load configuration values from Hyprland config system (following official plugin pattern)
+    static auto* const PENABLED = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(m_handle, "plugin:stack3d:enabled")->getDataStaticPtr();
+    static auto* const PTRANSITION_DURATION = (Hyprlang::FLOAT* const*)HyprlandAPI::getConfigValue(m_handle, "plugin:stack3d:transition_duration")->getDataStaticPtr();
+    static auto* const PSTAGGER_DELAY = (Hyprlang::FLOAT* const*)HyprlandAPI::getConfigValue(m_handle, "plugin:stack3d:stagger_delay")->getDataStaticPtr();
+    static auto* const PTRANSITION_STYLE = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(m_handle, "plugin:stack3d:transition_style")->getDataStaticPtr();
+    static auto* const PSTACK_DEPTH_STEP = (Hyprlang::FLOAT* const*)HyprlandAPI::getConfigValue(m_handle, "plugin:stack3d:stack_depth_step")->getDataStaticPtr();
+    static auto* const PSPREAD_PADDING = (Hyprlang::FLOAT* const*)HyprlandAPI::getConfigValue(m_handle, "plugin:stack3d:spread_padding")->getDataStaticPtr();
+    static auto* const PDEFAULT_LAYOUT = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(m_handle, "plugin:stack3d:default_layout")->getDataStaticPtr();
+    static auto* const PSPRING_STRENGTH = (Hyprlang::FLOAT* const*)HyprlandAPI::getConfigValue(m_handle, "plugin:stack3d:spring_strength")->getDataStaticPtr();
+    static auto* const PDAMPING = (Hyprlang::FLOAT* const*)HyprlandAPI::getConfigValue(m_handle, "plugin:stack3d:damping")->getDataStaticPtr();
+    static auto* const PMOTION_BLUR = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(m_handle, "plugin:stack3d:motion_blur")->getDataStaticPtr();
+    static auto* const PPERSPECTIVE = (Hyprlang::FLOAT* const*)HyprlandAPI::getConfigValue(m_handle, "plugin:stack3d:perspective")->getDataStaticPtr();
+    static auto* const PEYE_DISTANCE = (Hyprlang::FLOAT* const*)HyprlandAPI::getConfigValue(m_handle, "plugin:stack3d:eye_distance")->getDataStaticPtr();
+
+    m_config.enabled = **PENABLED;
+    m_config.transitionDuration = **PTRANSITION_DURATION;
+    m_config.staggerDelay = **PSTAGGER_DELAY;
+    m_config.stackDepthStep = **PSTACK_DEPTH_STEP;
+    m_config.spreadPadding = **PSPREAD_PADDING;
+    m_config.springStrength = **PSPRING_STRENGTH;
+    m_config.damping = **PDAMPING;
+    m_config.motionBlur = **PMOTION_BLUR;
+    m_config.perspective = **PPERSPECTIVE;
+    m_config.eyeDistance = **PEYE_DISTANCE;
+    m_config.transitionStyle = static_cast<TransitionStyle>(**PTRANSITION_STYLE);
+    m_config.defaultLayout = static_cast<LayoutType>(**PDEFAULT_LAYOUT);
 }
 
 void Stack3DPlugin::toggleState() {

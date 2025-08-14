@@ -36,6 +36,11 @@
             libdrm
             hyprlandDev
             wayland
+            libinput
+            udev
+            pango
+            cairo
+            libxkbcommon
           ] ++ hyprlandDev.buildInputs;
 
           # Use CMake for building
@@ -111,12 +116,24 @@
             hyprlandDev
             pixman
             libdrm
+            wayland
+            libinput
+            udev
+            pango
+            cairo
+            libxkbcommon
           ] ++ hyprlandDev.buildInputs;
 
           # Environment variables
           PKG_CONFIG_PATH = "${pkgs.lib.makeSearchPathOutput "lib" "lib/pkgconfig" [
             pkgs.pixman
             pkgs.libdrm
+            pkgs.wayland
+            pkgs.libinput
+            pkgs.udev
+            pkgs.pango
+            pkgs.cairo
+            pkgs.libxkbcommon
             hyprlandDev
           ]}";
 
