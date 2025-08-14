@@ -155,97 +155,124 @@
           default = devShell;
         };
 
-        # NixOS module for easy integration
+        # NixOS module for system-wide installation
         nixosModules.default = { config, lib, pkgs, ... }:
           with lib;
           let
-            cfg = config.programs.hyprland.plugins.stack3d;
+            cfg = config.programs.hyprland.stack3d;
           in
           {
-            options.programs.hyprland.plugins.stack3d = {
+            options.programs.hyprland.stack3d = {
               enable = mkEnableOption "Hyprland Stack3D plugin";
 
               package = mkOption {
                 type = types.package;
-                inherit (self.packages.${pkgs.system}) default;
+                default = self.packages.${pkgs.system}.default;
                 description = "The Stack3D plugin package to use";
               };
 
               settings = mkOption {
-                type = types.attrs;
+                type = with types; attrsOf (oneOf [ bool int float str ]);
                 default = {
-                  enable = true;
+                  enabled = true;
                   transition_duration = 0.8;
                   stagger_delay = 0.05;
-                  transition_style = "smooth_slide";
-                  stack_depth_step = 100;
-                  spread_padding = 20;
-                  default_layout = "grid";
+                  transition_style = 0;  # 0 = SMOOTH_SLIDE
+                  stack_depth_step = 100.0;
+                  spread_padding = 20.0;
+                  default_layout = 0;    # 0 = GRID
                   spring_strength = 0.8;
                   damping = 0.92;
-                  motion_blur = true;
-                  perspective = 800;
-                  eye_distance = 1000;
+                  motion_blur = 1;       # 1 = true
+                  perspective = 800.0;
+                  eye_distance = 1000.0;
                 };
-                description = "Configuration settings for Stack3D plugin";
+                description = ''
+                  Configuration settings for Stack3D plugin.
+                  See the plugin documentation for available options.
+                '';
               };
 
               keybindings = mkOption {
-                type = types.attrs;
+                type = with types; attrsOf str;
                 default = {
                   toggle = "SUPER, grave";
+                  cycle = "SUPER, TAB";
                   peek = "SUPER, space";
-                  cycle_layout = "SUPER SHIFT, grave";
                 };
-                description = "Keybinding configuration";
+                description = "Keybinding configuration for Stack3D commands";
               };
             };
 
             config = mkIf cfg.enable {
+              # Ensure Hyprland is enabled with our plugin
               programs.hyprland = {
-                enable = true;
+                enable = mkDefault true;
                 plugins = [ cfg.package ];
               };
 
-              # Add plugin configuration to Hyprland config
-              programs.hyprland.extraConfig = ''
+              # Add Hyprland configuration file with plugin settings
+              environment.etc."hypr/stack3d.conf".text = ''
                 # Stack3D Plugin Configuration
-                plugin = ${cfg.package}/lib/stack3d.so
+                # Load plugin
+                plugin = ${cfg.package}/lib/libhyprland-stack3d.so
 
+                # Plugin settings
                 plugin {
-                  stack3d {
-                    ${lib.concatStringsSep "\n    " (lib.mapAttrsToList 
-                      (name: value: "${name} = ${toString value}") cfg.settings)}
-                    
-                    toggle_key = "${cfg.keybindings.toggle}"
-                    peek_key = "${cfg.keybindings.peek}"
-                    cycle_layout_key = "${cfg.keybindings.cycle_layout}"
-                  }
+                    stack3d {
+                        ${lib.concatStringsSep "\n        " (lib.mapAttrsToList 
+                          (name: value: "${name} = ${toString value}") cfg.settings)}
+                    }
                 }
+
+                # Keybindings for Stack3D
+                bind = ${cfg.keybindings.toggle}, exec, hyprctl dispatch stack3d toggle
+                bind = ${cfg.keybindings.cycle}, exec, hyprctl dispatch stack3d cycle
+                bind = ${cfg.keybindings.peek}, exec, hyprctl dispatch stack3d peek
+              '';
+
+              # Inform users about the configuration file
+              system.userActivationScripts.stack3d-config = ''
+                echo "Stack3D plugin configuration available at /etc/hypr/stack3d.conf"
+                echo "Include it in your Hyprland config with: source = /etc/hypr/stack3d.conf"
               '';
             };
           };
 
-        # Home Manager module
+        # Home Manager module for user-level installation
         homeManagerModules.default = { config, lib, pkgs, ... }:
           with lib;
           let
-            cfg = config.wayland.windowManager.hyprland.plugins.stack3d;
+            cfg = config.wayland.windowManager.hyprland.stack3d;
           in
           {
-            options.wayland.windowManager.hyprland.plugins.stack3d = {
+            options.wayland.windowManager.hyprland.stack3d = {
               enable = mkEnableOption "Hyprland Stack3D plugin";
 
               package = mkOption {
                 type = types.package;
-                inherit (self.packages.${pkgs.system}) default;
+                default = self.packages.${pkgs.system}.default;
                 description = "The Stack3D plugin package to use";
               };
 
               settings = mkOption {
-                type = types.attrs;
-                default = { };
-                description = "Plugin settings";
+                type = with types; attrsOf (oneOf [ bool int float str ]);
+                default = {
+                  enabled = true;
+                  transition_duration = 0.8;
+                  default_layout = "grid";
+                };
+                description = "Plugin configuration settings";
+              };
+
+              keybindings = mkOption {
+                type = with types; attrsOf str;
+                default = {
+                  toggle = "SUPER, grave";
+                  cycle = "SUPER, TAB"; 
+                  peek = "SUPER, space";
+                };
+                description = "Keybinding configuration";
               };
             };
 
@@ -253,11 +280,21 @@
               wayland.windowManager.hyprland = {
                 plugins = [ cfg.package ];
 
-                settings = {
-                  plugin = {
-                    stack3d = cfg.settings;
-                  };
-                };
+                # Add plugin configuration to Hyprland settings
+                extraConfig = ''
+                  # Stack3D Plugin Configuration
+                  plugin {
+                      stack3d {
+                          ${lib.concatStringsSep "\n          " (lib.mapAttrsToList 
+                            (name: value: "${name} = ${toString value}") cfg.settings)}
+                      }
+                  }
+
+                  # Stack3D Keybindings
+                  bind = ${cfg.keybindings.toggle}, exec, hyprctl dispatch stack3d toggle
+                  bind = ${cfg.keybindings.cycle}, exec, hyprctl dispatch stack3d cycle
+                  bind = ${cfg.keybindings.peek}, exec, hyprctl dispatch stack3d peek
+                '';
               };
             };
           };

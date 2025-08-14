@@ -1,129 +1,244 @@
-# Hyprland 3D Stack Sliding Animation Plugin
+# Hyprland 3D Stack Plugin
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/yourusername/hyprland-stack3d/ci.yml?branch=main)](https://github.com/yourusername/hyprland-stack3d/actions)
 [![License](https://img.shields.io/github/license/yourusername/hyprland-stack3d)](https://github.com/yourusername/hyprland-stack3d/blob/main/LICENSE)
 [![Version](https://img.shields.io/github/v/release/yourusername/hyprland-stack3d)](https://github.com/yourusername/hyprland-stack3d/releases)
 [![NixOS](https://img.shields.io/badge/NixOS-Ready-blue?logo=nixos)](https://nixos.org)
 
-> **Smooth 3D stack animations with sliding transitions between stacked and spread window layouts for Hyprland**
+> **3D window stacking plugin for Hyprland - organize and navigate multiple windows with intuitive visual depth**
 
-## ⚠️ **WORK IN PROGRESS - NOT READY FOR USE**
-
-**🚨 WARNING: This plugin is currently in active development and is NOT ready for production use.**
-
-**Current Status:**
-- ✅ Code architecture and build system completed
-- ✅ CMake build system with proper Hyprland integration
-- ✅ Comprehensive testing framework 
-- ✅ NixOS flake configuration
-- 🔄 **Plugin functionality is NOT yet implemented**
-- 🔄 **Hyprland integration is NOT yet working**
-- ❌ **DO NOT attempt to install or use this plugin yet**
-
-**What works:** Build system, code compilation, and development environment
-**What doesn't work:** Actual 3D stack animations and Hyprland integration
-
-The plugin will crash Hyprland if loaded in its current state. Please wait for a stable release before attempting to use this plugin.
-
----
-
-Transform your Hyprland experience with beautiful, physics-based window animations that provide both visual appeal and practical functionality. Stack windows in 3D space, then smoothly transition to organized spread layouts with customizable easing curves and layout algorithms.
-
-![Demo Animation](docs/assets/demo.gif)
+A Hyprland plugin that provides smooth 3D stacking animations for windows, allowing you to organize and navigate multiple windows in an intuitive visual interface with center-screen positioning and progressive depth effects.
 
 ## Features
 
-### Animation Styles
-- **Smooth Slide** - Clean, professional transitions
-- **Bounce In** - Playful bounce effect on arrival  
-- **Elastic Out** - Elastic overshoot and settle
-- **Cascade Wave** - Staggered wave animations
-- **Spiral Motion** - Rotating spiral transitions
-- **Magnetic Attract** - Snap-to-place effect
-- **Liquid Flow** - Fluid, organic movement
+### Core Functionality
+- **Center-screen 3D stacking** - Windows move to screen center and stack with progressive depth offsets
+- **Multiple side-by-side stacks** - Automatically creates multiple stacks for workspaces with many windows (6 windows per stack)
+- **Window cycling** - Navigate through window layers in each stack to bring different windows to front
+- **Perfect restoration** - Windows return to their original positions when exiting stack mode
+- **Transparency effects** - Progressive transparency creates visual depth with front windows opaque
+- **Multi-monitor support** - Works with any monitor resolution and aspect ratio
 
-### Layout Types
-- **Grid Layout** - Optimal rectangular arrangement based on window count
-- **Circular Layout** - Windows arranged in a perfect circle
-- **Spiral Layout** - Expanding logarithmic spiral with rotation
-- **Fibonacci Layout** - Golden ratio-based recursive splitting
+### Layout Features
+- **Automatic stack organization** - Up to 6 windows per stack, additional windows create new side-by-side stacks
+- **Standardized window sizing** - 800x600 window size in stack mode for consistent appearance
+- **Progressive positioning** - 20px left offset and 15px upward offset per layer for 3D depth effect
+- **Smooth animations** - Configurable transition durations and timing
+- **State management** - Proper tracking between stack mode and normal window layout
 
-### Advanced Features
-- **Physics-Based Motion** - Spring-damping system for realistic movement
-- **3D Perspective** - True 3D transformations with configurable depth
-- **Motion Blur** - Velocity-based blur effects during transitions
-- **Multi-Monitor Support** - Independent state per monitor
-- **Real-time Configuration** - Hot-reload settings without restart
-- **Performance Optimized** - 60 FPS smooth animations with minimal CPU usage
+## Commands
 
-## Quick Start
+| Command | Description |
+|---------|-------------|
+| `hyprctl dispatch stack3d toggle` | Enter/exit 3D stack mode |
+| `hyprctl dispatch stack3d cycle` | Cycle through window layers (only in stack mode) |
+| `hyprctl dispatch stack3d peek` | Temporary peek mode (placeholder) |
+
+## Installation
 
 ### NixOS (Recommended)
 
-```bash
-# Add to your NixOS configuration
+#### System-wide Installation
+
+Add to your NixOS configuration (`/etc/nixos/configuration.nix`):
+
+```nix
 {
-  programs.hyprland.plugins.stack3d = {
+  # Add the flake input
+  inputs.hyprland-stack3d.url = "github:yourusername/3Dstack-hyrpland";
+  
+  # In your system configuration
+  programs.hyprland = {
+    enable = true;
+    plugins = [
+      inputs.hyprland-stack3d.packages.${pkgs.system}.default
+    ];
+  };
+  
+  # Optional: Use the NixOS module for easy configuration
+  programs.hyprland.stack3d = {
     enable = true;
     settings = {
       transition_duration = 0.8;
       default_layout = "grid";
-      transition_style = "smooth_slide";
     };
+    keybindings = {
+      toggle = "SUPER, grave";
+      cycle = "SUPER, TAB";
+      peek = "SUPER, space";
+    };
+  };
+}
+```
+
+#### Home Manager Installation
+
+Add to your `home.nix`:
+
+```nix
+{
+  # Add the flake input to your flake.nix
+  inputs.hyprland-stack3d.url = "github:yourusername/3Dstack-hyrpland";
+  
+  # In your home configuration
+  wayland.windowManager.hyprland = {
+    enable = true;
+    plugins = [
+      inputs.hyprland-stack3d.packages.${pkgs.system}.default
+    ];
+    
+    # Plugin configuration
+    extraConfig = ''
+      plugin {
+        stack3d {
+          enabled = true
+          transition_duration = 0.8
+          default_layout = "grid"
+        }
+      }
+      
+      # Keybindings
+      bind = SUPER, grave, exec, hyprctl dispatch stack3d toggle
+      bind = SUPER, TAB, exec, hyprctl dispatch stack3d cycle
+      bind = SUPER, space, exec, hyprctl dispatch stack3d peek
+    '';
   };
 }
 ```
 
 ### Manual Installation
 
-```bash
-# Clone and build
-git clone https://github.com/yourusername/hyprland-stack3d.git
-cd hyprland-stack3d
-nix develop  # or install dependencies manually
-just build && just install
+#### Using Nix
 
-# Add to Hyprland config
-echo 'plugin = ~/.config/hypr/plugins/stack3d.so' >> ~/.config/hypr/hyprland.conf
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/3Dstack-hyrpland.git
+cd 3Dstack-hyrpland
+
+# Build the plugin
+nix build
+
+# Load the plugin (note: requires correct Hyprland instance signature)
+export HYPRLAND_INSTANCE_SIGNATURE=$(hyprctl instances | grep "instance" | cut -d' ' -f2 | tr -d ':')
+hyprctl plugin load ./result/lib/libhyprland-stack3d.so
 ```
 
-### Basic Configuration
+#### Traditional Build
 
-Add to your `~/.config/hypr/hyprland.conf`:
+```bash
+# Install dependencies (example for Arch Linux)
+sudo pacman -S hyprland cmake gcc pkg-config
+
+# Clone and build
+git clone https://github.com/yourusername/3Dstack-hyrpland.git
+cd 3Dstack-hyrpland
+mkdir build && cd build
+cmake ..
+make
+
+# Load the plugin
+hyprctl plugin load ../build/libhyprland-stack3d.so
+```
+
+## Configuration
+
+The plugin supports extensive configuration through Hyprland's config system. Add this to your `~/.config/hypr/hyprland.conf`:
 
 ```bash
 plugin {
     stack3d {
-        enable = true
-        transition_duration = 0.8
-        stagger_delay = 0.05
-        transition_style = "smooth_slide"
-        default_layout = "grid" 
-        motion_blur = true
+        # Core settings
+        enabled = true                    # Enable/disable the plugin
+        transition_duration = 0.8         # Animation duration in seconds
+        stagger_delay = 0.05             # Delay between window animations
+        
+        # Visual effects
+        transition_style = "smooth_slide" # Animation style
+        stack_depth_step = 100           # Z-depth between layers
+        spread_padding = 20              # Padding in spread layouts
+        motion_blur = true               # Enable motion blur effects
+        
+        # 3D perspective
+        perspective = 800                # Perspective distance
+        eye_distance = 1000             # Camera distance
+        
+        # Layout options
+        default_layout = "grid"          # Default spread layout type
+        
+        # Physics (for future features)
+        spring_strength = 0.8            # Spring animation strength
+        damping = 0.92                   # Motion damping factor
     }
 }
 ```
 
-## Usage
+### Configuration Options
 
-### Default Keybindings
-- **`SUPER + grave`** - Toggle between 3D stack and spread layout
-- **`SUPER + space`** - Temporary peek when in stack mode  
-- **`SUPER + SHIFT + grave`** - Cycle through layout types
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `enabled` | boolean | `true` | Enable/disable the plugin |
+| `transition_duration` | float | `0.8` | Animation duration in seconds |
+| `stagger_delay` | float | `0.05` | Delay between window animations |
+| `transition_style` | string | `"smooth_slide"` | Animation style |
+| `stack_depth_step` | float | `100.0` | Z-depth between window layers |
+| `spread_padding` | float | `20.0` | Padding around windows |
+| `default_layout` | string | `"grid"` | Layout type: grid, circular, spiral, fibonacci |
+| `spring_strength` | float | `0.8` | Spring animation strength (0.0-1.0) |
+| `damping` | float | `0.92` | Motion damping factor (0.0-1.0) |
+| `motion_blur` | boolean | `true` | Enable motion blur effects |
+| `perspective` | float | `800.0` | 3D perspective distance |
+| `eye_distance` | float | `1000.0` | Camera eye distance |
 
-### Advanced Controls
+## Usage Guide
+
+### Basic Usage
+
+1. **Enter 3D Stack Mode**:
+   ```bash
+   hyprctl dispatch stack3d toggle
+   ```
+   All visible windows move to screen center and stack with 3D depth effect.
+
+2. **Navigate Through Layers**:
+   ```bash
+   hyprctl dispatch stack3d cycle
+   ```
+   Cycles through window layers, bringing different windows to the front.
+
+3. **Exit Stack Mode**:
+   ```bash
+   hyprctl dispatch stack3d toggle
+   ```
+   All windows return to their original positions.
+
+### Recommended Keybindings
+
+Add these to your Hyprland configuration:
+
 ```bash
-# Manual layout switching
-hyprctl plugin stack3d set_layout grid
-hyprctl plugin stack3d set_layout circular
-hyprctl plugin stack3d set_layout spiral
-hyprctl plugin stack3d set_layout fibonacci
+# 3D Stack controls
+bind = SUPER, grave, exec, hyprctl dispatch stack3d toggle
+bind = SUPER, TAB, exec, hyprctl dispatch stack3d cycle
+bind = SUPER, space, exec, hyprctl dispatch stack3d peek
 
-# Animation style changes
-hyprctl plugin stack3d set_style smooth_slide
-hyprctl plugin stack3d set_style bounce_in
-hyprctl plugin stack3d set_style elastic_out
+# Alternative bindings
+bind = ALT, TAB, exec, hyprctl dispatch stack3d cycle
+bind = SUPER_SHIFT, grave, exec, hyprctl dispatch stack3d toggle
 ```
+
+### Multiple Stacks
+
+When you have more than 6 windows:
+- Windows are automatically organized into multiple side-by-side stacks
+- Each stack contains up to 6 windows
+- Stacks are evenly spaced across the screen (400px spacing)
+- Cycling affects all stacks simultaneously
+
+### Best Practices
+
+1. **Optimal Window Count**: Works best with 2-12 windows per workspace
+2. **Monitor Size**: More effective on larger monitors (1440p or higher)
+3. **Window Types**: Works with all window types including floating windows
+4. **Performance**: Animations are optimized for smooth 60 FPS performance
 
 ## Documentation
 
