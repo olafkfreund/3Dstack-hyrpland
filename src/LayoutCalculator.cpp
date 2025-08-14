@@ -27,27 +27,26 @@ float Transform3D::getScaleForDepth(float zPos) const
 
 std::vector<WindowLayout> LayoutCalculator::calculateStackLayout(const std::vector<CWindow *> &windows) {
     std::vector<WindowLayout> layouts;
-    Vector2D                  stackCenter = getWorkspaceCenter();
+    Vector2D stackCenter = getWorkspaceCenter();
 
     for (size_t i = 0; i < windows.size(); i++)
     {
         WindowLayout layout;
         layout.window = windows[i];
 
-        // 3D perspective calculations
-        float depth = i * m_depthStep;
-        float scale = m_transform.getScaleForDepth(depth);
-
-        layout.position = stackCenter + Vector2D
-        { static_cast<float>(i) * 15.0f, static_cast<float>(i) * 10.0f };
-        layout.size = windows[i]->m_realSize->goal() * scale;
-        layout.rotation = i * 2.5f;
-        layout.scale = scale;
-        layout.alpha = std::max(0.4f,
-                                1.0f - (i * 0.15f));
+        // Simple stacking with small offsets - avoid complex 3D for now
+        Vector2D offset = { static_cast<float>(i) * 20.0f, static_cast<float>(i) * 15.0f };
+        
+        layout.position = stackCenter + offset - Vector2D{ 300, 200 }; // Center the stack
+        
+        // Use reasonable fixed size to avoid scaling issues
+        layout.size = { 600, 400 };
+        
+        layout.rotation = 0.0f; // No rotation for now
+        layout.scale = 1.0f;    // No scaling for now  
+        layout.alpha = 1.0f;    // Full opacity
         layout.zIndex = static_cast<int>(windows.size() - i);
-        layout.velocity =
-        { 0, 0 };
+        layout.velocity = { 0, 0 };
 
         layouts.push_back(layout);
     }
@@ -93,19 +92,23 @@ std::vector<WindowLayout> LayoutCalculator::calculateGridLayout(const std::vecto
         int      col = static_cast<int>(i) % grid.cols;
 
         Vector2D cellPos =
-        { col *cellSize.x + m_padding,
-          row *cellSize.y + m_padding };
+        { col * cellSize.x + m_padding,
+          row * cellSize.y + m_padding };
 
         layout.position = cellPos;
         layout.size =
         { cellSize.x - (m_padding * 2),
           cellSize.y - (m_padding * 2) };
+        
+        // Ensure minimum size constraints
+        layout.size.x = std::max(static_cast<float>(layout.size.x), 300.0f);
+        layout.size.y = std::max(static_cast<float>(layout.size.y), 200.0f);
+        
         layout.rotation = 0.0f;
         layout.scale = 1.0f;
         layout.alpha = 1.0f;
         layout.zIndex = 1;
-        layout.velocity =
-        { 0, 0 };
+        layout.velocity = { 0, 0 };
 
         layouts.push_back(layout);
     }
@@ -281,9 +284,9 @@ Vector2D LayoutCalculator::getWorkspaceCenter() {
 }
 
 Vector2D LayoutCalculator::getWorkspaceSize() {
-    // For now, return a default resolution
-    // In a real implementation, we would access the monitor through proper APIs
-    return { 1920, 1080 };
+    // For now, use a fixed size to avoid API complexity
+    // TODO: Get actual monitor size when we understand the API better
+    return Vector2D(1920.0, 1080.0);
 }
 
 float LayoutCalculator::getWorkspaceAspectRatio() {

@@ -151,16 +151,23 @@ void Stack3DPlugin::transitionToState(StackState newState) {
     m_currentState = newState;
     m_lastTransition = std::chrono::steady_clock::now();
 
-    // Show notification only for now to test basic functionality
+    // Apply window transformations using Hyprland's animation system
+    for (const auto& layout : targetLayouts) {
+        if (layout.window) {
+            // Use setValueAndWarp for now - we'll improve animation later
+            // This is the safest method that definitely works
+            layout.window->m_realPosition->setValueAndWarp(layout.position);
+            layout.window->m_realSize->setValueAndWarp(layout.size);
+        }
+    }
+
+    // Show success notification
     std::string message = (newState == StackState::STACKED_3D) ? 
                          "Entered 3D Stack Mode" : "Entered Spread Mode";
     message += " (" + std::to_string(targetLayouts.size()) + " windows)";
     
     HyprlandAPI::addNotification(m_handle, message,
-                                 CHyprColor{0.2, 1.0, 0.2, 1.0}, 3000);
-                                 
-    // TODO: Apply window transformations safely
-    // For now, skip window manipulation to avoid crashes
+                                 CHyprColor{0.2, 1.0, 0.2, 1.0}, 2000);
 } // Stack3DPlugin::transitionToState
 
 void Stack3DPlugin::registerKeybinds() {
@@ -172,19 +179,41 @@ std::vector<CWindow *> Stack3DPlugin::getCurrentWorkspaceWindows() {
     std::vector<CWindow *> windows;
     windows.reserve(16); // Reserve space to avoid reallocations
 
-    // Simplified and efficient window filtering
+    // Get current workspace - try different methods for API compatibility
+    PHLWORKSPACE currentWorkspace = nullptr;
+    if (g_pCompositor->m_lastMonitor && g_pCompositor->m_lastMonitor->m_activeWorkspace) {
+        currentWorkspace = g_pCompositor->m_lastMonitor->m_activeWorkspace;
+    }
+    
+    if (!currentWorkspace) {
+        // If we can't get workspace, return all valid windows
+        // This is safer than returning empty
+    }
+
+    // Filter windows for current workspace only
     for (auto &window : g_pCompositor->m_windows)
     {
         // Quick elimination checks first (most likely to fail)
-        if (!window || !window->m_isMapped || window->isHidden() || window->m_isFloating)
+        if (!window || !window->m_isMapped || window->isHidden() || 
+            window->m_isFloating || window->isFullscreen())
         {
+            continue;
+        }
+
+        // Only include windows on the current workspace if we have one
+        if (currentWorkspace && window->m_workspace != currentWorkspace) {
+            continue;
+        }
+
+        // Skip special windows (like bars, overlays, etc.)
+        if (window->isX11OverrideRedirect()) {
             continue;
         }
 
         windows.push_back(window.get());
 
         // Limit to reasonable number to prevent excessive processing
-        if (windows.size() >= 32)
+        if (windows.size() >= 16)
         {
             break;
         }
