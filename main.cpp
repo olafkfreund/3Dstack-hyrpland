@@ -4,6 +4,7 @@
 #include <hyprland/src/managers/KeybindManager.hpp>
 #include <hyprland/src/managers/AnimationManager.hpp>
 #include <hyprland/src/plugins/PluginAPI.hpp>
+#include <hyprland/src/SharedDefs.hpp>
 
 #include "include/Stack3DPlugin.hpp"
 
@@ -14,11 +15,11 @@ std::unique_ptr<Stack3DPlugin> g_pStack3DPlugin;
 // Use C linkage for plugin functions to ensure correct symbol names
 extern "C" {
 
-APICALL EXPORT std::string PLUGIN_API_VERSION() {
+APICALL EXPORT std::string pluginAPIVersion() {
     return HYPRLAND_API_VERSION;
 }
 
-APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
+APICALL EXPORT PLUGIN_DESCRIPTION_INFO pluginInit(HANDLE handle) {
     PHANDLE = handle;
     
     const std::string HASH = __hyprland_api_get_hash();
@@ -56,16 +57,23 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     // Initialize plugin
     g_pStack3DPlugin = std::make_unique<Stack3DPlugin>(PHANDLE);
     
-    // Register dispatcher following official plugin pattern
-    HyprlandAPI::addDispatcher(PHANDLE, "stack3d", [&](const std::string& arg) {
-        if (!g_pStack3DPlugin) return;
+    // Register dispatcher using modern API
+    HyprlandAPI::addDispatcherV2(PHANDLE, "stack3d", [&](std::string arg) -> SDispatchResult {
+        if (!g_pStack3DPlugin) {
+            return SDispatchResult{.success = false, .error = "Plugin not initialized"};
+        }
         
         if (arg == "toggle") {
             g_pStack3DPlugin->toggleState();
+            return SDispatchResult{.success = true, .error = ""};
         } else if (arg == "cycle") {
             g_pStack3DPlugin->cycleLayoutType();
+            return SDispatchResult{.success = true, .error = ""};
         } else if (arg == "peek") {
             g_pStack3DPlugin->temporaryPeek(2.0f); // 2 second peek
+            return SDispatchResult{.success = true, .error = ""};
+        } else {
+            return SDispatchResult{.success = false, .error = "Unknown command: " + arg};
         }
     });
     
@@ -81,7 +89,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
             "1.0.0"};
 }
 
-APICALL EXPORT void PLUGIN_EXIT() {
+APICALL EXPORT void pluginExit() {
     if (g_pStack3DPlugin) {
         g_pStack3DPlugin.reset();
     }
