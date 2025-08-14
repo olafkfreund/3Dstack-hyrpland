@@ -46,7 +46,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     HyprlandAPI::addConfigValue(PHANDLE, "plugin:stack3d:perspective", Hyprlang::FLOAT{800.0});
     HyprlandAPI::addConfigValue(PHANDLE, "plugin:stack3d:eye_distance", Hyprlang::FLOAT{1000.0});
 
-    HyprlandAPI::registerCallbackDynamic(PHANDLE, "configReloaded", [&](void* self, SCallbackInfo&, std::any data) {
+    static auto configHook = HyprlandAPI::registerCallbackDynamic(PHANDLE, "configReloaded", [&](void* self, SCallbackInfo&, std::any data) {
         (void)self; (void)data;
         if (g_pStack3DPlugin) {
             g_pStack3DPlugin->onConfigReload();

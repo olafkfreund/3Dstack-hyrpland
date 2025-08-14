@@ -253,7 +253,7 @@ status:
     git log --oneline -5
 
 # Commit changes with conventional commit format
-commit MESSAGE:
+commit-msg MESSAGE:
     @echo "Committing changes..."
     git add .
     git commit -m "{{MESSAGE}}"

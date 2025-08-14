@@ -13,13 +13,13 @@
 #include "AnimationSystem.hpp"
 #include "PhysicsMotion.hpp"
 
-enum class StackState {
-    STACKED_3D,
-    TRANSITIONING,
-    SPREAD_LAYOUT
+enum class StackState
+{
+    STACKED_3D, TRANSITIONING, SPREAD_LAYOUT
 };
 
-struct PluginConfig {
+struct PluginConfig
+{
     bool enabled = true;
     float transitionDuration = 0.8f;
     float staggerDelay = 0.05f;
@@ -37,19 +37,21 @@ struct PluginConfig {
     std::string cycleLayoutKey = "SUPER SHIFT, grave";
 };
 
-class Stack3DPlugin {
+class Stack3DPlugin
+{
 private:
     HANDLE m_handle;
     StackState m_currentState;
     PluginConfig m_config;
-    
+
     std::unique_ptr<LayoutCalculator> m_layoutCalculator;
     std::unique_ptr<AnimationSystem> m_animationSystem;
     std::unique_ptr<PhysicsMotion> m_physicsMotion;
-    
-    std::vector<CWindow*> m_managedWindows;
+
+    std::vector<CWindow *> m_managedWindows;
     std::chrono::steady_clock::time_point m_lastTransition;
-    
+    std::chrono::steady_clock::time_point m_lastWindowUpdate;
+
     // Event hooks
     SP<HOOK_CALLBACK_FN> m_windowOpenHook;
     SP<HOOK_CALLBACK_FN> m_windowCloseHook;
@@ -59,36 +61,43 @@ private:
 public:
     explicit Stack3DPlugin(HANDLE handle);
     ~Stack3DPlugin();
-    
+
     // Core functionality
     void toggleState();
     void transitionToState(StackState newState);
     void cycleLayoutType();
     void temporaryPeek(float duration);
-    
+
     // Configuration
     void loadConfig();
     void onConfigReload();
-    
+
     // Event handlers
-    void onWindowOpen(CWindow* window);
-    void onWindowClose(CWindow* window);
-    void onWindowFocus(CWindow* window);
+    void onWindowOpen(CWindow *window);
+    void onWindowClose(CWindow *window);
+    void onWindowFocus(CWindow *window);
     void onWorkspaceChange();
-    
+
     // Keybinds
     void registerKeybinds();
-    
+
     // Getters
-    StackState getCurrentState() const { return m_currentState; }
-    const PluginConfig& getConfig() const { return m_config; }
-    
+    StackState getCurrentState() const
+    {
+        return m_currentState;
+    }
+
+    const PluginConfig &getConfig() const
+    {
+        return m_config;
+    }
+
     // Window management
-    std::vector<CWindow*> getCurrentWorkspaceWindows();
+    std::vector<CWindow *> getCurrentWorkspaceWindows();
     void updateManagedWindows();
-    
+
 private:
     void initializeHooks();
     void cleanupHooks();
     bool isTransitionAllowed();
-};
+}; // class Stack3DPlugin

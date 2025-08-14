@@ -4,7 +4,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
-    
+
     hyprland = {
       url = "github:hyprwm/Hyprland/cb6589db98325705cef5dcaf92ccdf41ab21386d";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -15,7 +15,7 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        
+
         hyprlandPkgs = hyprland.packages.${system};
         hyprlandDev = hyprland.packages.${system}.hyprland-debug;
 
@@ -36,11 +36,6 @@
             libdrm
             hyprlandDev
             wayland
-            libinput
-            udev
-            pango
-            cairo
-            libxkbcommon
           ] ++ hyprlandDev.buildInputs;
 
           # Use CMake for building
@@ -71,14 +66,14 @@
             homepage = "https://github.com/yourusername/hyprland-stack3d";
             license = licenses.mit;
             platforms = platforms.linux;
-            maintainers = [];
+            maintainers = [ ];
           };
         };
 
         # Development shell with all necessary dependencies
         devShell = pkgs.mkShell {
           name = "hyprland-stack3d-dev";
-          
+
           nativeBuildInputs = with pkgs; [
             # Build tools
             cmake
@@ -86,17 +81,17 @@
             gnumake
             pkg-config
             just
-            
+
             # Development and testing tools
             gdb
             valgrind
             clang-tools
             lcov
-            
+
             # Code quality tools
             cppcheck
             uncrustify
-            
+
             # Nix tools
             nixd
             nil
@@ -104,7 +99,7 @@
             deadnix
             nix-tree
             nix-diff
-            
+
             # General development
             git
             gitlint
@@ -117,11 +112,6 @@
             pixman
             libdrm
             wayland
-            libinput
-            udev
-            pango
-            cairo
-            libxkbcommon
           ] ++ hyprlandDev.buildInputs;
 
           # Environment variables
@@ -129,16 +119,11 @@
             pkgs.pixman
             pkgs.libdrm
             pkgs.wayland
-            pkgs.libinput
-            pkgs.udev
-            pkgs.pango
-            pkgs.cairo
-            pkgs.libxkbcommon
             hyprlandDev
           ]}";
 
           HYPRLAND_HEADERS = "${hyprlandDev}/include";
-          
+
           shellHook = ''
             echo "🚀 Hyprland Stack3D Plugin Development Environment"
             echo "📦 Available tools:"
@@ -159,7 +144,8 @@
           '';
         };
 
-      in {
+      in
+      {
         packages = {
           default = stack3d;
           hyprland-stack3d = stack3d;
@@ -174,13 +160,14 @@
           with lib;
           let
             cfg = config.programs.hyprland.plugins.stack3d;
-          in {
+          in
+          {
             options.programs.hyprland.plugins.stack3d = {
               enable = mkEnableOption "Hyprland Stack3D plugin";
-              
+
               package = mkOption {
                 type = types.package;
-                default = self.packages.${pkgs.system}.default;
+                inherit (self.packages.${pkgs.system}) default;
                 description = "The Stack3D plugin package to use";
               };
 
@@ -244,19 +231,20 @@
           with lib;
           let
             cfg = config.wayland.windowManager.hyprland.plugins.stack3d;
-          in {
+          in
+          {
             options.wayland.windowManager.hyprland.plugins.stack3d = {
               enable = mkEnableOption "Hyprland Stack3D plugin";
-              
+
               package = mkOption {
                 type = types.package;
-                default = self.packages.${pkgs.system}.default;
+                inherit (self.packages.${pkgs.system}) default;
                 description = "The Stack3D plugin package to use";
               };
 
               settings = mkOption {
                 type = types.attrs;
-                default = {};
+                default = { };
                 description = "Plugin settings";
               };
             };
@@ -264,7 +252,7 @@
             config = mkIf cfg.enable {
               wayland.windowManager.hyprland = {
                 plugins = [ cfg.package ];
-                
+
                 settings = {
                   plugin = {
                     stack3d = cfg.settings;
@@ -280,18 +268,20 @@
         # Checks for `nix flake check`
         checks = {
           build = stack3d;
-          
+
           # Code quality checks
-          statix = pkgs.runCommand "statix-check" { 
-            nativeBuildInputs = [ pkgs.statix ]; 
-          } ''
+          statix = pkgs.runCommand "statix-check"
+            {
+              nativeBuildInputs = [ pkgs.statix ];
+            } ''
             statix check ${./.}
             touch $out
           '';
-          
-          deadnix = pkgs.runCommand "deadnix-check" { 
-            nativeBuildInputs = [ pkgs.deadnix ]; 
-          } ''
+
+          deadnix = pkgs.runCommand "deadnix-check"
+            {
+              nativeBuildInputs = [ pkgs.deadnix ];
+            } ''
             deadnix ${./.}
             touch $out
           '';

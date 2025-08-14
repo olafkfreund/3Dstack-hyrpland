@@ -6,16 +6,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(PkgConfig REQUIRED)
 
-# Find required dependencies using pkg-config like official plugins
+# Find required dependencies using pkg-config - minimal set for 3D animations
 pkg_check_modules(deps REQUIRED IMPORTED_TARGET
     hyprland
     libdrm
-    libinput
-    libudev  
-    pangocairo
     pixman-1
     wayland-server
-    xkbcommon
 )
 
 # Create the plugin shared library
