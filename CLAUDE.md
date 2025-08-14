@@ -431,3 +431,52 @@ This debugging experience highlights the importance of:
 - Creating reusable knowledge artifacts (comprehensive guides) from complex debugging sessions
 
 The resolution demonstrates that plugin crashes are often caused by fundamental build system or API contract issues rather than code logic problems.
+
+### 13. **Successful Window Manipulation Implementation**
+
+**Breakthrough**: Alpha-based stacking effects with subtle position offsets working without crashes
+
+**Final Working Approach**:
+1. **Alpha Transparency Effects**: Using `m_activeInactiveAlpha->setValueAndWarp()` to create depth perception
+   - Front window (index 0): Full opacity (1.0f)
+   - Back windows: Progressive fade (0.4f minimum, decreasing by 0.15f per layer)
+   
+2. **Subtle Position Offsets**: Very small position adjustments for enhanced visual effect
+   - 10px horizontal, 8px vertical offset per window in stack
+   - Safe restoration by subtracting the same offset when switching modes
+   
+3. **Property Restoration**: Immediate restoration of all modified properties when exiting stack mode
+
+**Key Research Findings from Successful Plugins**:
+- **hyprfocus approach**: Temporary property changes rather than permanent repositioning
+- **Safe API patterns**: Use `setValueAndWarp()` for immediate changes, `goal()` to read current values
+- **Incremental development**: Start with alpha effects, gradually add position changes
+- **Property management**: Always restore original values when switching modes
+
+**Technical Implementation Details**:
+```cpp
+// Safe alpha-based depth effect
+float alpha = (i == 0) ? 1.0f : std::max(0.4f, 1.0f - (i * 0.15f));
+layout.window->m_activeInactiveAlpha->setValueAndWarp(alpha);
+
+// Subtle position offset for enhanced depth
+Vector2D currentPos = layout.window->m_realPosition->goal();
+Vector2D stackOffset = Vector2D(i * 10.0f, i * 8.0f);
+layout.window->m_realPosition->setValueAndWarp(currentPos + stackOffset);
+```
+
+**Results**:
+- Plugin loads without crashes
+- Visual depth effect achieved through transparency and positioning
+- All dispatcher commands working (`stack3d toggle`, `stack3d cycle`, `stack3d peek`)
+- Smooth transitions between stacked and spread modes
+- No performance issues or UI freezing
+
+**Lessons for Future Window Manipulation**:
+1. **Start minimal**: Begin with single property changes (alpha only)
+2. **Test incrementally**: Add one manipulation type at a time
+3. **Use safe APIs**: Stick to `setValueAndWarp()` and `goal()` methods
+4. **Always restore**: Maintain original state restoration logic
+5. **Avoid complex transforms**: Skip rotation and scaling until basics work perfectly
+
+This implementation provides a solid foundation for the 3D stack visualization concept while maintaining system stability.
