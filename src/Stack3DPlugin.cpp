@@ -151,15 +151,10 @@ void Stack3DPlugin::transitionToState(StackState newState) {
     m_currentState = newState;
     m_lastTransition = std::chrono::steady_clock::now();
 
-    // Apply window transformations using Hyprland's animation system
-    for (const auto& layout : targetLayouts) {
-        if (layout.window) {
-            // Use setValueAndWarp for now - we'll improve animation later
-            // This is the safest method that definitely works
-            layout.window->m_realPosition->setValueAndWarp(layout.position);
-            layout.window->m_realSize->setValueAndWarp(layout.size);
-        }
-    }
+    // Placeholder for future safe window effects
+    // Any window manipulation will be added here once we solve the API issues
+    // For now, just show notifications to confirm the dispatcher works
+    (void)targetLayouts; // Suppress unused variable warning
 
     // Show success notification
     std::string message = (newState == StackState::STACKED_3D) ? 
