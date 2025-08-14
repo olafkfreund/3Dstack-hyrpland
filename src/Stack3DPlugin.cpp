@@ -151,10 +151,41 @@ void Stack3DPlugin::transitionToState(StackState newState) {
     m_currentState = newState;
     m_lastTransition = std::chrono::steady_clock::now();
 
-    // Placeholder for future safe window effects
-    // Any window manipulation will be added here once we solve the API issues
-    // For now, just show notifications to confirm the dispatcher works
-    (void)targetLayouts; // Suppress unused variable warning
+    // Safe alpha-based stacking effect (inspired by hyprfocus approach)
+    // This creates depth illusion without moving windows
+    if (!targetLayouts.empty()) {
+        for (size_t i = 0; i < targetLayouts.size(); ++i) {
+            const auto& layout = targetLayouts[i];
+            if (layout.window && layout.window->m_activeInactiveAlpha) {
+                
+                if (newState == StackState::STACKED_3D) {
+                    // Create stacking effect with transparency
+                    // Front window (index 0) is fully opaque, back windows fade
+                    float alpha = (i == 0) ? 1.0f : std::max(0.4f, 1.0f - (i * 0.15f));
+                    layout.window->m_activeInactiveAlpha->setValueAndWarp(alpha);
+                    
+                    // Add very subtle position offset for depth effect (safe incremental approach)
+                    if (i > 0) {
+                        Vector2D currentPos = layout.window->m_realPosition->goal();
+                        Vector2D stackOffset = Vector2D(i * 10.0f, i * 8.0f); // Very small offsets
+                        layout.window->m_realPosition->setValueAndWarp(currentPos + stackOffset);
+                    }
+                    
+                    // TODO: Border highlighting - need to research correct API for CGradientValueData
+                } else {
+                    // Restore normal opacity in spread mode
+                    layout.window->m_activeInactiveAlpha->setValueAndWarp(1.0f);
+                    
+                    // Restore original position if we had moved it
+                    if (i > 0) {
+                        Vector2D currentPos = layout.window->m_realPosition->goal();
+                        Vector2D stackOffset = Vector2D(i * 10.0f, i * 8.0f);
+                        layout.window->m_realPosition->setValueAndWarp(currentPos - stackOffset);
+                    }
+                }
+            }
+        }
+    }
 
     // Show success notification
     std::string message = (newState == StackState::STACKED_3D) ? 
@@ -331,6 +362,21 @@ void Stack3DPlugin::cycleLayoutType() {
     int currentLayout = static_cast<int>(m_config.defaultLayout);
     currentLayout = (currentLayout + 1) % 4; // 4 layout types
     m_config.defaultLayout = static_cast<LayoutType>(currentLayout);
+
+    // Show which layout we switched to
+    std::string layoutName;
+    switch (m_config.defaultLayout) {
+        case LayoutType::GRID: layoutName = "Grid"; break;
+        case LayoutType::CIRCULAR: layoutName = "Circular"; break;
+        case LayoutType::SPIRAL: layoutName = "Spiral"; break;
+        case LayoutType::FIBONACCI: layoutName = "Fibonacci"; break;
+        default: layoutName = "Unknown"; break;
+    }
+    
+    HyprlandAPI::addNotification(m_handle, 
+                                "Layout: " + layoutName,
+                                CHyprColor{0.8f, 0.5f, 1.0f, 1.0f}, 
+                                1500);
 
     // If currently in spread mode, update immediately
     if (m_currentState == StackState::SPREAD_LAYOUT)
