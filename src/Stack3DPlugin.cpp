@@ -26,6 +26,10 @@ Stack3DPlugin::Stack3DPlugin(HANDLE handle)
 
     initializeHooks();
     updateManagedWindows();
+    
+    // Show simple initialization notification
+    HyprlandAPI::addNotification(m_handle, "Stack3D Plugin loaded",
+                                 CHyprColor{0.0, 1.0, 0.0, 1.0}, 2000);
 }
 
 Stack3DPlugin::~Stack3DPlugin() {
@@ -159,41 +163,42 @@ void Stack3DPlugin::transitionToState(StackState newState) {
             if (layout.window && layout.window->m_activeInactiveAlpha) {
                 
                 if (newState == StackState::STACKED_3D) {
-                    // Create stacking effect with transparency
-                    // Front window (index 0) is fully opaque, back windows fade
-                    float alpha = (i == 0) ? 1.0f : std::max(0.4f, 1.0f - (i * 0.15f));
+                    // Enhanced stacking effect: transparency + careful position offset
+                    float alpha = (i == 0) ? 1.0f : std::max(0.3f, 1.0f - (i * 0.2f));
                     layout.window->m_activeInactiveAlpha->setValueAndWarp(alpha);
                     
-                    // Add very subtle position offset for depth effect (safe incremental approach)
+                    // Add moderate position offset for enhanced depth effect
                     if (i > 0) {
                         Vector2D currentPos = layout.window->m_realPosition->goal();
-                        Vector2D stackOffset = Vector2D(i * 10.0f, i * 8.0f); // Very small offsets
+                        Vector2D stackOffset = Vector2D(i * 30.0f, i * 25.0f); // Moderate offsets
                         layout.window->m_realPosition->setValueAndWarp(currentPos + stackOffset);
                     }
                     
-                    // TODO: Border highlighting - need to research correct API for CGradientValueData
                 } else {
-                    // Restore normal opacity in spread mode
+                    // Restore normal opacity and position
                     layout.window->m_activeInactiveAlpha->setValueAndWarp(1.0f);
                     
-                    // Restore original position if we had moved it
+                    // Carefully restore position for offset windows
                     if (i > 0) {
                         Vector2D currentPos = layout.window->m_realPosition->goal();
-                        Vector2D stackOffset = Vector2D(i * 10.0f, i * 8.0f);
+                        Vector2D stackOffset = Vector2D(i * 30.0f, i * 25.0f);
                         layout.window->m_realPosition->setValueAndWarp(currentPos - stackOffset);
                     }
+                    
                 }
             }
         }
     }
 
-    // Show success notification
+    // Show simple status notification
     std::string message = (newState == StackState::STACKED_3D) ? 
-                         "Entered 3D Stack Mode" : "Entered Spread Mode";
-    message += " (" + std::to_string(targetLayouts.size()) + " windows)";
+                         "3D Stack Mode" : "Spread Mode";
+    if (!targetLayouts.empty()) {
+        message += " (" + std::to_string(targetLayouts.size()) + " windows)";
+    }
     
     HyprlandAPI::addNotification(m_handle, message,
-                                 CHyprColor{0.2, 1.0, 0.2, 1.0}, 2000);
+                                 CHyprColor{0.2, 1.0, 0.2, 1.0}, 1500);
 } // Stack3DPlugin::transitionToState
 
 void Stack3DPlugin::registerKeybinds() {
@@ -211,19 +216,30 @@ std::vector<CWindow *> Stack3DPlugin::getCurrentWorkspaceWindows() {
         currentWorkspace = g_pCompositor->m_lastMonitor->m_activeWorkspace;
     }
     
-    if (!currentWorkspace) {
-        // If we can't get workspace, return all valid windows
-        // This is safer than returning empty
-    }
+    // Debug: count total and filtered windows
+    int totalWindows = g_pCompositor->m_windows.size();
+    int mappedWindows = 0;
+    int workspaceWindows = 0;
+    int validWindows = 0;
 
     // Filter windows for current workspace only
     for (auto &window : g_pCompositor->m_windows)
     {
+        // Count all mapped windows
+        if (window && window->m_isMapped) {
+            mappedWindows++;
+        }
+        
         // Quick elimination checks first (most likely to fail)
         if (!window || !window->m_isMapped || window->isHidden() || 
             window->m_isFloating || window->isFullscreen())
         {
             continue;
+        }
+
+        // Count windows on current workspace
+        if (!currentWorkspace || window->m_workspace == currentWorkspace) {
+            workspaceWindows++;
         }
 
         // Only include windows on the current workspace if we have one
@@ -237,6 +253,7 @@ std::vector<CWindow *> Stack3DPlugin::getCurrentWorkspaceWindows() {
         }
 
         windows.push_back(window.get());
+        validWindows++;
 
         // Limit to reasonable number to prevent excessive processing
         if (windows.size() >= 16)
@@ -244,6 +261,7 @@ std::vector<CWindow *> Stack3DPlugin::getCurrentWorkspaceWindows() {
             break;
         }
     }
+
 
     return windows;
 }
