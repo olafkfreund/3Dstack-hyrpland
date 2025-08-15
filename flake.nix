@@ -177,13 +177,13 @@
                   enabled = true;
                   transition_duration = 0.8;
                   stagger_delay = 0.05;
-                  transition_style = 0;  # 0 = SMOOTH_SLIDE
+                  transition_style = 0; # 0 = SMOOTH_SLIDE
                   stack_depth_step = 100.0;
                   spread_padding = 20.0;
-                  default_layout = 0;    # 0 = GRID
+                  default_layout = 0; # 0 = GRID
                   spring_strength = 0.8;
                   damping = 0.92;
-                  motion_blur = 1;       # 1 = true
+                  motion_blur = 1; # 1 = true
                   perspective = 800.0;
                   eye_distance = 1000.0;
                 };
@@ -269,7 +269,7 @@
                 type = with types; attrsOf str;
                 default = {
                   toggle = "SUPER, grave";
-                  cycle = "SUPER, TAB"; 
+                  cycle = "SUPER, TAB";
                   peek = "SUPER, space";
                 };
                 description = "Keybinding configuration";

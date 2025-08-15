@@ -15,14 +15,7 @@ pkg_check_modules(deps REQUIRED IMPORTED_TARGET
 )
 
 # Create the plugin shared library
-add_library(stack3d SHARED
-    main.cpp
-    src/Stack3DPlugin.cpp
-    src/BezierCurve.cpp
-    src/PhysicsMotion.cpp
-    src/LayoutCalculator.cpp
-    src/AnimationSystem.cpp
-)
+add_library(stack3d SHARED main.cpp)
 
 # Set output name to match expected plugin naming
 set_target_properties(stack3d PROPERTIES
@@ -30,16 +23,11 @@ set_target_properties(stack3d PROPERTIES
     PREFIX ""
 )
 
-# Link against Hyprland and dependencies (following official plugin pattern)
+# Link against Hyprland and dependencies
 target_link_libraries(stack3d PRIVATE rt PkgConfig::deps)
 
 # Set compile flags
 target_compile_options(stack3d PRIVATE -Wall -Wextra -fPIC)
-
-# Include directories
-target_include_directories(stack3d PRIVATE 
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
 
 # Install target
 install(TARGETS stack3d
